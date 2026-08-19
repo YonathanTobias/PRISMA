@@ -255,4 +255,44 @@ class SimpegSystemTest extends TestCase
             'value' => 'New Institution Name',
         ]);
     }
+
+    /** @test */
+    public function hrd_can_upload_and_download_employee_document()
+    {
+        \Illuminate\Support\Facades\Storage::fake('local');
+        $this->actingAs($this->hrd);
+
+        $employee = Employee::create([
+            'nik' => 'EMP-DOC-TEST',
+            'full_name' => 'Budi Document Test',
+            'employment_status' => 'tetap',
+            'status' => 'active',
+        ]);
+
+        $file = \Illuminate\Http\UploadedFile::fake()->create('ktp.pdf', 500);
+
+        $responseUpload = $this->post(route('documents.store', $employee->id), [
+            'type' => 'ktp',
+            'name' => 'KTP Budi',
+            'file' => $file,
+        ]);
+
+        $responseUpload->assertRedirect();
+        
+        $document = $employee->documents()->first();
+        $this->assertNotNull($document);
+        $this->assertEquals('KTP Budi', $document->name);
+        
+        // Assert file exists on secure local storage
+        \Illuminate\Support\Facades\Storage::disk('local')->assertExists($document->file_path);
+
+        // Test secure download
+        $responseDownload = $this->get(route('documents.download', $document));
+        $responseDownload->assertStatus(200);
+
+        // Test unauthenticated access block
+        auth()->logout();
+        $responseGuest = $this->get(route('documents.download', $document));
+        $responseGuest->assertRedirect('/login');
+    }
 }

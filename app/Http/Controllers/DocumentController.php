@@ -21,7 +21,7 @@ class DocumentController extends Controller
         ]);
 
         $file = $request->file('file');
-        $path = $file->store('employees/documents/' . $employee->id, 'public');
+        $path = $file->store('employees/documents/' . $employee->id, 'local');
 
         EmployeeDocument::create([
             'employee_id' => $employee->id,
@@ -41,20 +41,20 @@ class DocumentController extends Controller
 
     public function download(EmployeeDocument $document)
     {
-        if (!Storage::disk('public')->exists($document->file_path)) {
+        if (!Storage::disk('local')->exists($document->file_path)) {
             abort(404, 'File tidak ditemukan.');
         }
 
-        return Storage::disk('public')->download($document->file_path, $document->file_name);
+        return Storage::disk('local')->download($document->file_path, $document->file_name);
     }
 
     public function preview(EmployeeDocument $document)
     {
-        if (!Storage::disk('public')->exists($document->file_path)) {
+        if (!Storage::disk('local')->exists($document->file_path)) {
             abort(404, 'File tidak ditemukan.');
         }
 
-        $filePath = Storage::disk('public')->path($document->file_path);
+        $filePath = Storage::disk('local')->path($document->file_path);
         return response()->file($filePath, [
             'Content-Type' => $document->file_type ?? 'application/pdf',
         ]);
@@ -62,7 +62,7 @@ class DocumentController extends Controller
 
     public function destroy(EmployeeDocument $document)
     {
-        Storage::disk('public')->delete($document->file_path);
+        Storage::disk('local')->delete($document->file_path);
         $employeeId = $document->employee_id;
         $document->delete();
 
