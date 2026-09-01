@@ -49,7 +49,6 @@
                     <span class="badge badge-status bg-success bg-opacity-10 text-success border border-success">
                         <i class="bi bi-circle-fill me-1" style="font-size:7px"></i>Aktif
                     </span>
-                    <span class="badge badge-status bg-light text-dark border"><i class="bi bi-building me-1"></i>{{ $employee->work_location ?? '—' }}</span>
                 </div>
             </div>
             <div class="col-auto">
@@ -125,7 +124,6 @@
                             ['label'=>'Departemen','value'=>$employee->department?->name ?? '—'],
                             ['label'=>'Jabatan','value'=>$employee->position?->name ?? '—'],
                             ['label'=>'Atasan Langsung','value'=>$employee->supervisor?->full_name ?? '—'],
-                            ['label'=>'Lokasi Kerja','value'=>$employee->work_location ?? '—'],
                             ['label'=>'Tanggal Bergabung','value'=>$employee->join_date?->format('d M Y') ?? '—'],
                             ['label'=>'Akhir Kontrak','value'=>$employee->contract_end_date?->format('d M Y') ?? '—'],
                             ['label'=>'Catatan','value'=>$employee->notes ?? '—'],

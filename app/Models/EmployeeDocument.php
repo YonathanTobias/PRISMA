@@ -26,6 +26,7 @@ class EmployeeDocument extends Model
         'kontrak_kerja'          => 'Kontrak Kerja',
         'sk_jabatan'             => 'SK Jabatan',
         'foto'                   => 'Foto',
+        'Transkrip'              => 'Transkrip',
         'lainnya'                => 'Lainnya',
     ];
 

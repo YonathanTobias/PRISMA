@@ -18,7 +18,7 @@ class Employee extends Model
         'nik', 'full_name', 'birth_place', 'birth_date', 'gender', 'address',
         'phone', 'email', 'photo',
         'employment_status', 'department_id', 'position_id', 'supervisor_id',
-        'work_location', 'join_date', 'contract_end_date',
+        'join_date', 'contract_end_date',
         'status', 'marital_status', 'notes',
     ];
 

@@ -123,10 +123,6 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold" style="font-size:13px">Lokasi Kerja</label>
-                            <input type="text" name="work_location" class="form-control" value="{{ old('work_location', $employee->work_location) }}">
-                        </div>
-                        <div class="col-md-6">
                             <label class="form-label fw-semibold" style="font-size:13px">Tanggal Bergabung</label>
                             <input type="date" name="join_date" class="form-control" value="{{ old('join_date', $employee->join_date?->format('Y-m-d')) }}">
                         </div>
