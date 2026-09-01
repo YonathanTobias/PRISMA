@@ -95,13 +95,34 @@ class EmployeeReportExport implements FromCollection, WithHeadings, WithTitle, W
 
     private function turnoverCollection()
     {
-        $year  = $this->filters['year'] ?? now()->year;
+        $year  = $this->filters['year'] ?? null;
         $month = $this->filters['month'] ?? null;
 
-        return Employee::onlyTrashed()->with(['department', 'position', 'resignationDetail'])
-            ->whereYear('deleted_at', $year)
-            ->when($month, fn($q) => $q->whereMonth('deleted_at', $month))
-            ->get()
+        $query = Employee::onlyTrashed()->with(['department', 'position', 'resignationDetail']);
+
+        if (!empty($year) && $year !== 'all') {
+            $query->where(function($q) use ($year) {
+                $q->whereHas('resignationDetail', fn($rq) => $rq->whereYear('resignation_date', $year))
+                  ->orWhere(function($rq) use ($year) {
+                      $rq->doesntHave('resignationDetail')->whereYear('deleted_at', $year);
+                  });
+            });
+        }
+
+        if (!empty($month)) {
+            $query->where(function($q) use ($month) {
+                $q->whereHas('resignationDetail', fn($rq) => $rq->whereMonth('resignation_date', $month))
+                  ->orWhere(function($rq) use ($month) {
+                      $rq->doesntHave('resignationDetail')->whereMonth('deleted_at', $month);
+                  });
+            });
+        }
+
+        return $query->get()
+            ->sortByDesc(function($e) {
+                return $e->resignationDetail?->resignation_date?->timestamp ?? $e->deleted_at?->timestamp ?? 0;
+            })
+            ->values()
             ->map(function($e, $i) {
                 $detail = $e->resignationDetail;
                 return [

@@ -20,8 +20,16 @@ class DashboardController extends Controller
                 ->whereYear('join_date', now()->year)
                 ->count(),
             'resign_this_month' => Employee::onlyTrashed()
-                ->whereMonth('deleted_at', now()->month)
-                ->whereYear('deleted_at', now()->year)
+                ->where(function($q) {
+                    $q->whereHas('resignationDetail', function($rq) {
+                        $rq->whereMonth('resignation_date', now()->month)
+                           ->whereYear('resignation_date', now()->year);
+                    })->orWhere(function($rq) {
+                        $rq->doesntHave('resignationDetail')
+                           ->whereMonth('deleted_at', now()->month)
+                           ->whereYear('deleted_at', now()->year);
+                    });
+                })
                 ->count(),
         ];
 

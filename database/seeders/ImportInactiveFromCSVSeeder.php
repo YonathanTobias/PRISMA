@@ -266,8 +266,9 @@ CSV;
                 'clearance_date' => $resignDate,
             ]);
 
-            // Soft delete the employee
-            $employee->delete();
+            // Soft delete the employee with deleted_at matching resignation_date
+            $employee->deleted_at = $resignDate;
+            $employee->save();
         }
     }
 

@@ -54,10 +54,11 @@
             </div>
             @else
             <div class="col-md-3">
-                <label class="form-label mb-1" style="font-size:12px;font-weight:600">Tahun</label>
+                <label class="form-label mb-1" style="font-size:12px;font-weight:600">Tahun Keluar</label>
                 <select name="year" class="form-select" onchange="this.form.submit()">
+                    <option value="all" {{ $year === 'all' || empty($year) ? 'selected' : '' }}>Semua Tahun</option>
                     @foreach($years as $y)
-                    <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
+                    <option value="{{ $y }}" {{ $year == $y && $year !== 'all' ? 'selected' : '' }}>{{ $y }}</option>
                     @endforeach
                 </select>
             </div>
@@ -199,7 +200,12 @@
 
 @elseif($type === 'turnover')
 <div class="card">
-    <div class="card-header"><h6 class="mb-0 fw-bold"><i class="bi bi-person-x-fill text-danger me-2"></i>Daftar Pegawai Keluar (Tahun {{ $year }})</h6></div>
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-bold">
+            <i class="bi bi-person-x-fill text-danger me-2"></i>Daftar Pegawai Keluar ({{ (!empty($year) && $year !== 'all') ? 'Tahun ' . $year : 'Semua Periode / Tahun' }})
+        </h6>
+        <span class="badge bg-secondary">{{ count($data['employees']) }} Pegawai</span>
+    </div>
     <div class="card-body p-0">
         <table class="table table-hover mb-0">
             <thead class="table-light"><tr><th>#</th><th>NIK</th><th>Nama</th><th>Departemen</th><th>Tgl Keluar</th><th>Alasan</th></tr></thead>

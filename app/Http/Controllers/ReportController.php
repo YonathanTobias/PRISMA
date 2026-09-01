@@ -16,7 +16,7 @@ class ReportController extends Controller
     public function index(Request $request)
     {
         $type       = $request->get('type', 'demografi');
-        $year       = $request->get('year', now()->year);
+        $year       = $request->get('year', 'all');
         $month      = $request->get('month');
         $dept_id    = $request->get('department_id');
 
@@ -29,7 +29,16 @@ class ReportController extends Controller
 
         $departments = Department::orderBy('name')->get();
 
-        $years = range(now()->year, max(now()->year - 5, 2020));
+        $dbYears = \App\Models\ResignationDetail::selectRaw('YEAR(resignation_date) as yr')
+            ->whereNotNull('resignation_date')
+            ->distinct()
+            ->pluck('yr')
+            ->map(fn($y) => (int)$y)
+            ->toArray();
+
+        $allYears = array_unique(array_merge([now()->year], $dbYears));
+        rsort($allYears);
+        $years = $allYears;
 
         return view('reports.index', compact('type', 'year', 'month', 'dept_id', 'data', 'departments', 'years'));
     }
@@ -84,18 +93,36 @@ class ReportController extends Controller
         ];
     }
 
-    private function getTurnoverData(int $year, ?int $month = null): array
+    private function getTurnoverData($year = 'all', ?int $month = null): array
     {
         $query = Employee::onlyTrashed()->with(['department', 'resignationDetail']);
-        $query->whereYear('deleted_at', $year);
-        if ($month) $query->whereMonth('deleted_at', $month);
 
-        $employees = $query->orderByDesc('deleted_at')->get();
+        if (!empty($year) && $year !== 'all') {
+            $query->where(function($q) use ($year) {
+                $q->whereHas('resignationDetail', fn($rq) => $rq->whereYear('resignation_date', $year))
+                  ->orWhere(function($rq) use ($year) {
+                      $rq->doesntHave('resignationDetail')->whereYear('deleted_at', $year);
+                  });
+            });
+        }
+
+        if (!empty($month)) {
+            $query->where(function($q) use ($month) {
+                $q->whereHas('resignationDetail', fn($rq) => $rq->whereMonth('resignation_date', $month))
+                  ->orWhere(function($rq) use ($month) {
+                      $rq->doesntHave('resignationDetail')->whereMonth('deleted_at', $month);
+                  });
+            });
+        }
+
+        $employees = $query->get()->sortByDesc(function($e) {
+            return $e->resignationDetail?->resignation_date?->timestamp ?? $e->deleted_at?->timestamp ?? 0;
+        })->values();
 
         return [
             'employees'    => $employees,
             'by_reason'    => $employees->groupBy(fn($e) => $e->resignationDetail?->reason ?? 'unknown'),
-            'by_month'     => $employees->groupBy(fn($e) => $e->deleted_at->format('m')),
+            'by_month'     => $employees->groupBy(fn($e) => $e->resignationDetail?->resignation_date?->format('m') ?? $e->deleted_at?->format('m')),
             'by_department'=> $employees->groupBy(fn($e) => $e->department?->name ?? 'Tidak diketahui'),
         ];
     }
@@ -122,7 +149,7 @@ class ReportController extends Controller
         return match($request->get('type', 'demografi')) {
             'demografi' => $this->getDemografiData($request->get('department_id')),
             'status'    => $this->getStatusData($request->get('department_id')),
-            'turnover'  => $this->getTurnoverData($request->get('year', now()->year), $request->get('month')),
+            'turnover'  => $this->getTurnoverData($request->get('year', 'all'), $request->get('month')),
             default     => [],
         };
     }
