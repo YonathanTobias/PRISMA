@@ -65,6 +65,12 @@
             <td class="label">Jenis Kelamin</td>
             <td class="value">: {{ $employee->gender === 'L' ? 'Laki-laki' : ($employee->gender === 'P' ? 'Perempuan' : '—') }}</td>
         </tr>
+        @if($employee->religion)
+        <tr>
+            <td class="label">Agama</td>
+            <td class="value">: {{ $employee->religion }}</td>
+        </tr>
+        @endif
         <tr>
             <td class="label">Status Pernikahan</td>
             <td class="value">: {{ \App\Models\Employee::$maritalStatusLabels[$employee->marital_status] ?? '—' }}</td>
@@ -77,6 +83,12 @@
             <td class="label">Kontak Karyawan</td>
             <td class="value">: Telepon: {{ $employee->phone ?? '—' }} | Email: {{ $employee->email ?? '—' }}</td>
         </tr>
+        @if(!$employee->isDosen() && $employee->rank_group)
+        <tr>
+            <td class="label">Pangkat / Golongan</td>
+            <td class="value">: {{ $employee->rank_group }}</td>
+        </tr>
+        @endif
         <tr>
             <td class="label">Mulai Bekerja</td>
             <td class="value">: {{ $employee->join_date?->format('d F Y') ?? '—' }} (Masa Kerja: {{ $employee->work_duration ?? '—' }})</td>
@@ -88,6 +100,40 @@
         </tr>
         @endif
     </table>
+
+    @if($employee->isDosen())
+    <div class="section-title">Informasi Akademik & Fungsional Dosen</div>
+    <table class="profile-table">
+        <tr>
+            <td class="label">NIDN / NIDK</td>
+            <td class="value">: <strong>{{ $employee->nidn ?? '—' }}</strong> (NUPTK: {{ $employee->nuptk ?? '—' }})</td>
+        </tr>
+        <tr>
+            <td class="label">Jabatan Fungsional</td>
+            <td class="value">: <strong>{{ $employee->functional_position ?? '—' }}</strong></td>
+        </tr>
+        <tr>
+            <td class="label">Pangkat / Golongan</td>
+            <td class="value">: {{ $employee->rank_group ?? '—' }}</td>
+        </tr>
+        <tr>
+            <td class="label">Bidang Keahlian</td>
+            <td class="value">: {{ $employee->specialization ?? '—' }}</td>
+        </tr>
+        <tr>
+            <td class="label">Sertifikasi Dosen (SERDOS)</td>
+            <td class="value">: {{ $employee->serdos ?? '—' }}</td>
+        </tr>
+        <tr>
+            <td class="label">Pekerti / AA</td>
+            <td class="value">: PEKERTI: {{ $employee->pekerti ?? '—' }} | Applied Approach: {{ $employee->applied_approach ?? '—' }}</td>
+        </tr>
+        <tr>
+            <td class="label">Inpassing & SK</td>
+            <td class="value">: Inpassing: {{ $employee->inpassing ?? '—' }} | SK: {{ $employee->sk_dosen_tetap ?? '—' }}</td>
+        </tr>
+    </table>
+    @endif
 
     <div class="section-title">Riwayat Pendidikan Formal</div>
     @if($employee->educations->isNotEmpty())

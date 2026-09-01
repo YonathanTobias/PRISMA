@@ -45,7 +45,17 @@
                     @endphp
                     <span class="badge badge-status bg-{{ $colors[$employee->employment_status] ?? 'secondary' }} fs-6">
                         {{ \App\Models\Employee::$employmentStatusLabels[$employee->employment_status] ?? $employee->employment_status }}
-                    </span>
+                    @if($employee->isDosen())
+                    <span class="badge badge-status bg-primary fs-6"><i class="bi bi-mortarboard-fill me-1"></i>Dosen</span>
+                    @if($employee->nidn)
+                    <span class="badge badge-status bg-info text-dark border"><i class="bi bi-person-vcard me-1"></i>NIDN: {{ $employee->nidn }}</span>
+                    @endif
+                    @if($employee->functional_position)
+                    <span class="badge badge-status bg-light text-dark border"><i class="bi bi-award me-1"></i>{{ $employee->functional_position }}</span>
+                    @endif
+                    @elseif($employee->isTendik())
+                    <span class="badge badge-status bg-secondary fs-6"><i class="bi bi-briefcase-fill me-1"></i>Tenaga Kependidikan</span>
+                    @endif
                     <span class="badge badge-status bg-success bg-opacity-10 text-success border border-success">
                         <i class="bi bi-circle-fill me-1" style="font-size:7px"></i>Aktif
                     </span>
@@ -95,8 +105,9 @@
                         @php
                         $rows = [
                             ['label'=>'Nama Lengkap','value'=>$employee->full_name],
-                            ['label'=>'NIK','value'=>$employee->nik],
+                            ['label'=>'NIK / NIP','value'=>$employee->nik ?? '—'],
                             ['label'=>'Jenis Kelamin','value'=>\App\Models\Employee::$genderLabels[$employee->gender] ?? '—'],
+                            ['label'=>'Agama','value'=>$employee->religion ?? '—'],
                             ['label'=>'Tempat Lahir','value'=>$employee->birth_place ?? '—'],
                             ['label'=>'Tanggal Lahir','value'=>$employee->birth_date?->format('d M Y').' ('.$employee->age.' tahun)' ?? '—'],
                             ['label'=>'Status Pernikahan','value'=>\App\Models\Employee::$maritalStatusLabels[$employee->marital_status] ?? '—'],
@@ -120,9 +131,11 @@
                     <div class="card-body">
                         @php
                         $rows2 = [
+                            ['label'=>'Kategori Pegawai','value'=>$employee->isDosen() ? 'Dosen' : 'Tenaga Kependidikan (Tendik)'],
                             ['label'=>'Status Kepegawaian','value'=>\App\Models\Employee::$employmentStatusLabels[$employee->employment_status] ?? '—'],
-                            ['label'=>'Departemen','value'=>$employee->department?->name ?? '—'],
+                            ['label'=>'Unit / Program Studi','value'=>$employee->department?->name ?? '—'],
                             ['label'=>'Jabatan','value'=>$employee->position?->name ?? '—'],
+                            ['label'=>'Pangkat / Golongan','value'=>$employee->rank_group ?? '—'],
                             ['label'=>'Atasan Langsung','value'=>$employee->supervisor?->full_name ?? '—'],
                             ['label'=>'Tanggal Bergabung','value'=>$employee->join_date?->format('d M Y') ?? '—'],
                             ['label'=>'Akhir Kontrak','value'=>$employee->contract_end_date?->format('d M Y') ?? '—'],
@@ -138,6 +151,55 @@
                     </div>
                 </div>
             </div>
+
+            @if($employee->isDosen())
+            {{-- Card Khusus Dosen: Informasi Akademik --}}
+            <div class="col-12">
+                <div class="card border-primary border-opacity-25 shadow-sm">
+                    <div class="card-header bg-primary bg-opacity-10 d-flex justify-content-between align-items-center py-2">
+                        <h6 class="mb-0 fw-bold text-primary"><i class="bi bi-mortarboard-fill me-2"></i>Informasi Akademik Dosen</h6>
+                        <span class="badge bg-primary">PSDM STIKes</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <div class="p-3 bg-light rounded border h-100">
+                                    <div class="text-muted" style="font-size:11px;font-weight:600;text-transform:uppercase">NIDN / NIDK</div>
+                                    <div class="fw-bold fs-6 text-primary mt-1">{{ $employee->nidn ?? '—' }}</div>
+                                    <div class="text-muted mt-2" style="font-size:11px;font-weight:600;text-transform:uppercase">NUPTK</div>
+                                    <div class="fw-semibold mt-1" style="font-size:13px">{{ $employee->nuptk ?? '—' }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="p-3 bg-light rounded border h-100">
+                                    <div class="text-muted" style="font-size:11px;font-weight:600;text-transform:uppercase">Jabatan Fungsional (Jafung)</div>
+                                    <div class="fw-bold text-dark mt-1" style="font-size:14px">{{ $employee->functional_position ?? '—' }}</div>
+                                    
+                                    <div class="text-muted mt-3" style="font-size:11px;font-weight:600;text-transform:uppercase">Bidang Keahlian / Peminatan</div>
+                                    <div class="fw-semibold mt-1" style="font-size:13px">{{ $employee->specialization ?? '—' }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="p-3 bg-light rounded border h-100">
+                                    <div class="row g-2" style="font-size:12.5px">
+                                        <div class="col-6 text-muted">SERDOS:</div>
+                                        <div class="col-6 fw-semibold text-end">{{ $employee->serdos ?? '—' }}</div>
+                                        <div class="col-6 text-muted">PEKERTI:</div>
+                                        <div class="col-6 fw-semibold text-end">{{ $employee->pekerti ?? '—' }}</div>
+                                        <div class="col-6 text-muted">Applied Approach:</div>
+                                        <div class="col-6 fw-semibold text-end">{{ $employee->applied_approach ?? '—' }}</div>
+                                        <div class="col-6 text-muted">Inpassing:</div>
+                                        <div class="col-6 fw-semibold text-end text-truncate" title="{{ $employee->inpassing }}">{{ $employee->inpassing ?? '—' }}</div>
+                                        <div class="col-6 text-muted">SK Dosen Tetap:</div>
+                                        <div class="col-6 fw-semibold text-end text-truncate" title="{{ $employee->sk_dosen_tetap }}">{{ $employee->sk_dosen_tetap ?? '—' }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
             {{-- Emergency Contacts --}}
             <div class="col-12">
                 <div class="card">

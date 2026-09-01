@@ -15,9 +15,11 @@ class Employee extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'nik', 'full_name', 'birth_place', 'birth_date', 'gender', 'address',
+        'nik', 'full_name', 'employee_type', 'religion', 'birth_place', 'birth_date', 'gender', 'address',
         'phone', 'email', 'photo',
         'employment_status', 'department_id', 'position_id', 'supervisor_id',
+        'nidn', 'nuptk', 'functional_position', 'specialization', 'rank_group',
+        'serdos', 'pekerti', 'applied_approach', 'inpassing', 'sk_dosen_tetap',
         'join_date', 'contract_end_date',
         'status', 'marital_status', 'notes',
     ];
@@ -139,5 +141,25 @@ class Employee extends Model
     public function scopeByStatus($query, $status)
     {
         return $query->where('employment_status', $status);
+    }
+
+    public function scopeDosen($query)
+    {
+        return $query->where('employee_type', 'dosen');
+    }
+
+    public function scopeTendik($query)
+    {
+        return $query->where('employee_type', 'tendik');
+    }
+
+    public function isDosen(): bool
+    {
+        return $this->employee_type === 'dosen';
+    }
+
+    public function isTendik(): bool
+    {
+        return $this->employee_type === 'tendik';
     }
 }

@@ -24,10 +24,34 @@
     </div>
 </div>
 
+{{-- Category Tabs: Semua, Dosen, Tendik --}}
+<div class="mb-3">
+    <div class="btn-group shadow-sm" role="group">
+        <a href="{{ route('employees.index', array_merge(request()->except('type', 'page'))) }}" 
+           class="btn {{ !request('type') ? 'btn-primary' : 'btn-outline-primary' }} px-3 py-2 fw-semibold" style="font-size:13px">
+            <i class="bi bi-people-fill me-1"></i> Semua Pegawai 
+            <span class="badge {{ !request('type') ? 'bg-white text-primary' : 'bg-primary text-white' }} ms-1">{{ $countAll ?? 0 }}</span>
+        </a>
+        <a href="{{ route('employees.index', array_merge(request()->except('page'), ['type' => 'dosen'])) }}" 
+           class="btn {{ request('type') === 'dosen' ? 'btn-primary' : 'btn-outline-primary' }} px-3 py-2 fw-semibold" style="font-size:13px">
+            <i class="bi bi-mortarboard-fill me-1"></i> Dosen 
+            <span class="badge {{ request('type') === 'dosen' ? 'bg-white text-primary' : 'bg-primary text-white' }} ms-1">{{ $countDosen ?? 0 }}</span>
+        </a>
+        <a href="{{ route('employees.index', array_merge(request()->except('page'), ['type' => 'tendik'])) }}" 
+           class="btn {{ request('type') === 'tendik' ? 'btn-primary' : 'btn-outline-primary' }} px-3 py-2 fw-semibold" style="font-size:13px">
+            <i class="bi bi-briefcase-fill me-1"></i> Tenaga Kependidikan (Tendik) 
+            <span class="badge {{ request('type') === 'tendik' ? 'bg-white text-primary' : 'bg-primary text-white' }} ms-1">{{ $countTendik ?? 0 }}</span>
+        </a>
+    </div>
+</div>
+
 {{-- Filter Card --}}
 <div class="card mb-4">
     <div class="card-body py-3">
         <form method="GET" action="{{ route('employees.index') }}" class="row g-2 align-items-end">
+            @if(request('type'))
+            <input type="hidden" name="type" value="{{ request('type') }}">
+            @endif
             <div class="col-md-4">
                 <label class="form-label mb-1" style="font-size:12px;font-weight:600">Cari Pegawai</label>
                 <div class="input-group">
@@ -109,18 +133,33 @@
                                 <div class="emp-initials-sm" style="font-size:13px">{{ substr($emp->full_name, 0, 1) }}</div>
                                 @endif
                                 <div>
-                                    <div class="fw-medium" style="font-size:13px">{{ $emp->full_name }}</div>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <div class="fw-medium" style="font-size:13px">{{ $emp->full_name }}</div>
+                                        @if($emp->isDosen())
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size:10px;padding:2px 5px">Dosen</span>
+                                        @elseif($emp->isTendik())
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle" style="font-size:10px;padding:2px 5px">Tendik</span>
+                                        @endif
+                                    </div>
                                     <div class="text-muted" style="font-size:11px">
                                         {{ $emp->gender === 'L' ? 'Laki-laki' : ($emp->gender === 'P' ? 'Perempuan' : '') }}
                                         {{ $emp->birth_date ? '• ' . $emp->age . ' tahun' : '' }}
+                                        @if($emp->nidn)
+                                        • <span class="fw-semibold text-primary">NIDN: {{ $emp->nidn }}</span>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
                         </td>
                         <td><code style="font-size:12px">{{ $emp->nik }}</code></td>
                         <td>
-                            <div style="font-size:13px">{{ $emp->department?->name ?? '—' }}</div>
-                            <div class="text-muted" style="font-size:11px">{{ $emp->position?->name ?? '—' }}</div>
+                            <div style="font-size:13px" class="fw-medium">{{ $emp->department?->name ?? '—' }}</div>
+                            <div class="text-muted" style="font-size:11px">
+                                {{ $emp->functional_position ?: ($emp->position?->name ?? '—') }}
+                                @if($emp->rank_group)
+                                <br><span class="badge bg-light text-dark border" style="font-size:10px">{{ $emp->rank_group }}</span>
+                                @endif
+                            </div>
                         </td>
                         <td>
                             @php

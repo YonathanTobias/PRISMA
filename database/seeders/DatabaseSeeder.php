@@ -63,5 +63,6 @@ class DatabaseSeeder extends Seeder
         // ── Import Employees, Departments, Positions, Families & Educations from CSV ──
         $this->call(ImportFromCSVSeeder::class);
         $this->call(ImportInactiveFromCSVSeeder::class);
+        $this->call(ImportPsdmExcelSeeder::class);
     }
 }

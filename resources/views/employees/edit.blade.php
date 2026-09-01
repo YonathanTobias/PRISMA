@@ -29,10 +29,27 @@
                     @endif
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold" style="font-size:13px">NIK / ID Pegawai <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold" style="font-size:13px">Kategori Pegawai <span class="text-danger">*</span></label>
+                            <select name="employee_type" id="employeeTypeSelect" class="form-select fw-semibold" required>
+                                <option value="tendik" {{ old('employee_type', $employee->employee_type) == 'tendik' ? 'selected' : '' }}>🏢 Tenaga Kependidikan (Tendik)</option>
+                                <option value="dosen" {{ old('employee_type', $employee->employee_type) == 'dosen' ? 'selected' : '' }}>🎓 Dosen</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:13px">Agama</label>
+                            <select name="religion" class="form-select">
+                                <option value="">— Pilih Agama —</option>
+                                @foreach(['Katolik', 'Kristen', 'Islam', 'Hindu', 'Budha', 'Konghucu'] as $ag)
+                                <option value="{{ $ag }}" {{ old('religion', $employee->religion) == $ag ? 'selected' : '' }}>{{ $ag }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:13px">NIK / ID Pegawai</label>
                             <input type="text" name="nik" class="form-control @error('nik') is-invalid @enderror"
-                                value="{{ old('nik', $employee->nik) }}" required>
+                                value="{{ old('nik', $employee->nik) }}">
                             @error('nik')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            <div class="form-text" style="font-size:11px">Kosongkan jika berstatus kontrak tanpa NIP</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold" style="font-size:13px">Nama Lengkap <span class="text-danger">*</span></label>
@@ -123,6 +140,10 @@
                             </select>
                         </div>
                         <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:13px">Pangkat / Golongan</label>
+                            <input type="text" name="rank_group" class="form-control" value="{{ old('rank_group', $employee->rank_group) }}" placeholder="cth: Penata Muda Tk.I Golongan III/b">
+                        </div>
+                        <div class="col-md-6">
                             <label class="form-label fw-semibold" style="font-size:13px">Tanggal Bergabung</label>
                             <input type="date" name="join_date" class="form-control" value="{{ old('join_date', $employee->join_date?->format('Y-m-d')) }}">
                         </div>
@@ -133,6 +154,54 @@
                         <div class="col-12">
                             <label class="form-label fw-semibold" style="font-size:13px">Catatan</label>
                             <textarea name="notes" class="form-control" rows="2">{{ old('notes', $employee->notes) }}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Informasi Akademik (Khusus Dosen) --}}
+            <div class="card mt-4" id="dosenAcademicSection" style="display:none">
+                <div class="card-header bg-primary bg-opacity-10 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold text-primary"><i class="bi bi-mortarboard-fill me-2"></i>Informasi Akademik Dosen (PSDM)</h6>
+                    <span class="badge bg-primary">Khusus Dosen</span>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:13px">NIDN / NIDK</label>
+                            <input type="text" name="nidn" class="form-control" value="{{ old('nidn', $employee->nidn) }}" placeholder="Nomor Induk Dosen Nasional">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:13px">NUPTK</label>
+                            <input type="text" name="nuptk" class="form-control" value="{{ old('nuptk', $employee->nuptk) }}" placeholder="Nomor Unik Pendidik & Tendik">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:13px">Jabatan Fungsional (Jafung)</label>
+                            <input type="text" name="functional_position" class="form-control" value="{{ old('functional_position', $employee->functional_position) }}" placeholder="cth: Asisten Ahli (150 kum) / Lektor">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:13px">Bidang Keahlian / Peminatan</label>
+                            <input type="text" name="specialization" class="form-control" value="{{ old('specialization', $employee->specialization) }}" placeholder="cth: Keperawatan Maternitas / Farmakologi">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:13px">Sertifikasi Dosen (SERDOS)</label>
+                            <input type="text" name="serdos" class="form-control" value="{{ old('serdos', $employee->serdos) }}" placeholder="No. Peserta Serdos atau status">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:13px">SK Dosen Tetap Yayasan</label>
+                            <input type="text" name="sk_dosen_tetap" class="form-control" value="{{ old('sk_dosen_tetap', $employee->sk_dosen_tetap) }}" placeholder="Nomor atau TMT SK">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold" style="font-size:13px">Pelatihan PEKERTI</label>
+                            <input type="text" name="pekerti" class="form-control" value="{{ old('pekerti', $employee->pekerti) }}" placeholder="No. Sertifikat / Tanggal">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold" style="font-size:13px">Applied Approach (AA)</label>
+                            <input type="text" name="applied_approach" class="form-control" value="{{ old('applied_approach', $employee->applied_approach) }}" placeholder="No. Sertifikat / Tanggal">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold" style="font-size:13px">Inpassing</label>
+                            <input type="text" name="inpassing" class="form-control" value="{{ old('inpassing', $employee->inpassing) }}" placeholder="SK / Status Inpassing">
                         </div>
                     </div>
                 </div>
@@ -169,6 +238,16 @@
 
 @push('scripts')
 <script>
+function toggleDosenFields() {
+    const select = document.getElementById('employeeTypeSelect');
+    const section = document.getElementById('dosenAcademicSection');
+    if (select && section) {
+        section.style.display = (select.value === 'dosen') ? 'block' : 'none';
+    }
+}
+document.getElementById('employeeTypeSelect')?.addEventListener('change', toggleDosenFields);
+toggleDosenFields();
+
 document.getElementById('photoInput').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (file) {

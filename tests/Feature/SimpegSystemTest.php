@@ -295,4 +295,75 @@ class SimpegSystemTest extends TestCase
         $responseGuest = $this->get(route('documents.download', $document));
         $responseGuest->assertRedirect('/login');
     }
+
+    /** @test */
+    public function hrd_can_filter_employees_by_dosen_and_tendik_type()
+    {
+        $this->actingAs($this->hrd);
+
+        $dosen = Employee::create([
+            'nik'               => 'EMP-DOSEN-TEST',
+            'full_name'         => 'Dr. Dosen Test',
+            'employee_type'     => 'dosen',
+            'nidn'              => '0701020304',
+            'employment_status' => 'tetap',
+            'status'            => 'active',
+        ]);
+
+        $tendik = Employee::create([
+            'nik'               => 'EMP-TENDIK-TEST',
+            'full_name'         => 'Staf Tendik Test',
+            'employee_type'     => 'tendik',
+            'employment_status' => 'tetap',
+            'status'            => 'active',
+        ]);
+
+        // Filter Dosen
+        $responseDosen = $this->get(route('employees.index', ['type' => 'dosen']));
+        $responseDosen->assertStatus(200);
+        $responseDosen->assertSee('Dr. Dosen Test');
+        $responseDosen->assertDontSee('Staf Tendik Test');
+
+        // Filter Tendik
+        $responseTendik = $this->get(route('employees.index', ['type' => 'tendik']));
+        $responseTendik->assertStatus(200);
+        $responseTendik->assertSee('Staf Tendik Test');
+        $responseTendik->assertDontSee('Dr. Dosen Test');
+    }
+
+    /** @test */
+    public function hrd_can_create_and_view_dosen_with_academic_fields()
+    {
+        $this->actingAs($this->hrd);
+
+        $dosenData = [
+            'nik'                 => 'DOSEN-TEST-99',
+            'full_name'           => 'Ns. Pengajar Unggul, M.Kep',
+            'employee_type'       => 'dosen',
+            'nidn'                => '0711223344',
+            'nuptk'               => '9988776655443322',
+            'functional_position' => 'Lektor (200 kum)',
+            'specialization'      => 'Keperawatan Medikal Bedah',
+            'serdos'              => 'Lulus 2023',
+            'employment_status'   => 'tetap',
+            'department_id'       => $this->department->id,
+            'position_id'         => $this->position->id,
+        ];
+
+        $response = $this->post(route('employees.store'), $dosenData);
+        $response->assertRedirect();
+
+        $dosen = Employee::where('nik', 'DOSEN-TEST-99')->first();
+        $this->assertNotNull($dosen);
+        $this->assertEquals('dosen', $dosen->employee_type);
+        $this->assertEquals('0711223344', $dosen->nidn);
+        $this->assertEquals('Lektor (200 kum)', $dosen->functional_position);
+
+        // View show page
+        $showResponse = $this->get(route('employees.show', $dosen));
+        $showResponse->assertStatus(200);
+        $showResponse->assertSee('Informasi Akademik Dosen');
+        $showResponse->assertSee('0711223344');
+        $showResponse->assertSee('Lektor (200 kum)');
+    }
 }

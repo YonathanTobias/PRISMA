@@ -44,15 +44,22 @@ class EmployeesExport implements FromCollection, WithHeadings, WithTitle, WithSt
             $query->where('gender', $this->filters['gender']);
         }
 
+        if (!empty($this->filters['type'])) {
+            $query->where('employee_type', $this->filters['type']);
+        }
+
         return $query->get()->map(function($e, $i) {
             return [
                 $i + 1,
                 $e->nik ?? '-',
                 $e->full_name,
+                strtoupper($e->employee_type ?? 'TENDIK'),
+                $e->nidn ?? '-',
                 $e->gender === 'L' ? 'Laki-laki' : ($e->gender === 'P' ? 'Perempuan' : '-'),
                 $e->birth_place . ($e->birth_date ? ', ' . $e->birth_date->format('d/m/Y') : ''),
                 $e->department?->name ?? '-',
-                $e->position?->name ?? '-',
+                $e->functional_position ?? ($e->position?->name ?? '-'),
+                $e->rank_group ?? '-',
                 Employee::$employmentStatusLabels[$e->employment_status] ?? $e->employment_status,
                 $e->join_date?->format('d/m/Y') ?? '-',
             ];
@@ -65,10 +72,13 @@ class EmployeesExport implements FromCollection, WithHeadings, WithTitle, WithSt
             'No',
             'NIP/NIK',
             'Nama Lengkap',
+            'Kategori',
+            'NIDN',
             'Jenis Kelamin',
             'Tempat, Tanggal Lahir',
-            'Departemen',
-            'Jabatan',
+            'Unit / Program Studi',
+            'Jabatan / Jafung',
+            'Pangkat / Golongan',
             'Status Kerja',
             'Tanggal Bergabung'
         ];

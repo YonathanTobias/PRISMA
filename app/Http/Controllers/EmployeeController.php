@@ -35,10 +35,18 @@ class EmployeeController extends Controller
             $query->where('gender', $request->gender);
         }
 
-        $employees  = $query->orderBy('full_name')->paginate(15)->withQueryString();
+        if ($request->filled('type')) {
+            $query->where('employee_type', $request->type);
+        }
+
+        $countAll    = Employee::active()->count();
+        $countDosen  = Employee::active()->where('employee_type', 'dosen')->count();
+        $countTendik = Employee::active()->where('employee_type', 'tendik')->count();
+
+        $employees   = $query->orderBy('full_name')->paginate(15)->withQueryString();
         $departments = Department::where('is_active', true)->orderBy('name')->get();
 
-        return view('employees.index', compact('employees', 'departments'));
+        return view('employees.index', compact('employees', 'departments', 'countAll', 'countDosen', 'countTendik'));
     }
 
     public function export(Request $request)
@@ -66,6 +74,10 @@ class EmployeeController extends Controller
 
             if ($request->filled('gender')) {
                 $query->where('gender', $request->gender);
+            }
+
+            if ($request->filled('type')) {
+                $query->where('employee_type', $request->type);
             }
 
             $employees = $query->orderBy('full_name')->get();
@@ -105,24 +117,38 @@ class EmployeeController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nik'               => 'nullable|string|unique:employees,nik',
-            'full_name'         => 'required|string|max:255',
-            'birth_place'       => 'nullable|string|max:100',
-            'birth_date'        => 'nullable|date',
-            'gender'            => 'nullable|in:L,P',
-            'address'           => 'nullable|string',
-            'phone'             => 'nullable|string|max:20',
-            'email'             => 'nullable|email|max:255',
-            'employment_status' => 'required|in:tetap,kontrak,magang,probation',
-            'department_id'     => 'nullable|exists:departments,id',
-            'position_id'       => 'nullable|exists:positions,id',
-            'supervisor_id'     => 'nullable|exists:employees,id',
-            'join_date'         => 'nullable|date',
-            'contract_end_date' => 'nullable|date',
-            'marital_status'    => 'nullable|in:belum_menikah,menikah,cerai,duda_janda',
-            'notes'             => 'nullable|string',
-            'photo'             => 'nullable|image|max:2048',
+            'nik'                 => 'nullable|string|unique:employees,nik',
+            'full_name'           => 'required|string|max:255',
+            'employee_type'       => 'nullable|in:dosen,tendik',
+            'religion'            => 'nullable|string|max:50',
+            'birth_place'         => 'nullable|string|max:100',
+            'birth_date'          => 'nullable|date',
+            'gender'              => 'nullable|in:L,P',
+            'address'             => 'nullable|string',
+            'phone'               => 'nullable|string|max:20',
+            'email'               => 'nullable|email|max:255',
+            'employment_status'   => 'required|in:tetap,kontrak,magang,probation',
+            'department_id'       => 'nullable|exists:departments,id',
+            'position_id'         => 'nullable|exists:positions,id',
+            'supervisor_id'       => 'nullable|exists:employees,id',
+            'nidn'                => 'nullable|string|max:50',
+            'nuptk'               => 'nullable|string|max:50',
+            'functional_position' => 'nullable|string|max:100',
+            'specialization'      => 'nullable|string|max:100',
+            'rank_group'          => 'nullable|string|max:100',
+            'serdos'              => 'nullable|string|max:100',
+            'pekerti'             => 'nullable|string|max:100',
+            'applied_approach'    => 'nullable|string|max:100',
+            'inpassing'           => 'nullable|string|max:100',
+            'sk_dosen_tetap'      => 'nullable|string|max:100',
+            'join_date'           => 'nullable|date',
+            'contract_end_date'   => 'nullable|date',
+            'marital_status'      => 'nullable|in:belum_menikah,menikah,cerai,duda_janda',
+            'notes'               => 'nullable|string',
+            'photo'               => 'nullable|image|max:2048',
         ]);
+
+        $validated['employee_type'] = $validated['employee_type'] ?? 'tendik';
 
         if ($request->hasFile('photo')) {
             $validated['photo'] = $request->file('photo')->store('employees/photos', 'public');
@@ -156,24 +182,40 @@ class EmployeeController extends Controller
     public function update(Request $request, Employee $employee)
     {
         $validated = $request->validate([
-            'nik'               => 'nullable|string|unique:employees,nik,' . $employee->id,
-            'full_name'         => 'required|string|max:255',
-            'birth_place'       => 'nullable|string|max:100',
-            'birth_date'        => 'nullable|date',
-            'gender'            => 'nullable|in:L,P',
-            'address'           => 'nullable|string',
-            'phone'             => 'nullable|string|max:20',
-            'email'             => 'nullable|email|max:255',
-            'employment_status' => 'required|in:tetap,kontrak,magang,probation',
-            'department_id'     => 'nullable|exists:departments,id',
-            'position_id'       => 'nullable|exists:positions,id',
-            'supervisor_id'     => 'nullable|exists:employees,id',
-            'join_date'         => 'nullable|date',
-            'contract_end_date' => 'nullable|date',
-            'marital_status'    => 'nullable|in:belum_menikah,menikah,cerai,duda_janda',
-            'notes'             => 'nullable|string',
-            'photo'             => 'nullable|image|max:2048',
+            'nik'                 => 'nullable|string|unique:employees,nik,' . $employee->id,
+            'full_name'           => 'required|string|max:255',
+            'employee_type'       => 'nullable|in:dosen,tendik',
+            'religion'            => 'nullable|string|max:50',
+            'birth_place'         => 'nullable|string|max:100',
+            'birth_date'          => 'nullable|date',
+            'gender'              => 'nullable|in:L,P',
+            'address'             => 'nullable|string',
+            'phone'               => 'nullable|string|max:20',
+            'email'               => 'nullable|email|max:255',
+            'employment_status'   => 'required|in:tetap,kontrak,magang,probation',
+            'department_id'       => 'nullable|exists:departments,id',
+            'position_id'         => 'nullable|exists:positions,id',
+            'supervisor_id'       => 'nullable|exists:employees,id',
+            'nidn'                => 'nullable|string|max:50',
+            'nuptk'               => 'nullable|string|max:50',
+            'functional_position' => 'nullable|string|max:100',
+            'specialization'      => 'nullable|string|max:100',
+            'rank_group'          => 'nullable|string|max:100',
+            'serdos'              => 'nullable|string|max:100',
+            'pekerti'             => 'nullable|string|max:100',
+            'applied_approach'    => 'nullable|string|max:100',
+            'inpassing'           => 'nullable|string|max:100',
+            'sk_dosen_tetap'      => 'nullable|string|max:100',
+            'join_date'           => 'nullable|date',
+            'contract_end_date'   => 'nullable|date',
+            'marital_status'      => 'nullable|in:belum_menikah,menikah,cerai,duda_janda',
+            'notes'               => 'nullable|string',
+            'photo'               => 'nullable|image|max:2048',
         ]);
+
+        if (empty($validated['employee_type'])) {
+            unset($validated['employee_type']);
+        }
 
         if ($request->hasFile('photo')) {
             if ($employee->photo) Storage::disk('public')->delete($employee->photo);
