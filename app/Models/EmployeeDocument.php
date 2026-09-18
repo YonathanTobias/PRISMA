@@ -30,6 +30,19 @@ class EmployeeDocument extends Model
         'lainnya'                => 'Lainnya',
     ];
 
+    public function documentType(): BelongsTo
+    {
+        return $this->belongsTo(DocumentType::class, 'type', 'code');
+    }
+
+    public function getTypeLabelAttribute(): string
+    {
+        if ($this->documentType) {
+            return $this->documentType->name;
+        }
+        return static::$typeLabels[$this->type] ?? ucfirst(str_replace('_', ' ', $this->type));
+    }
+
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);

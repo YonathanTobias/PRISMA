@@ -151,7 +151,14 @@ class EmployeeController extends Controller
         $validated['employee_type'] = $validated['employee_type'] ?? 'tendik';
 
         if ($request->hasFile('photo')) {
-            $validated['photo'] = $request->file('photo')->store('employees/photos', 'public');
+            $compressionService = app(\App\Services\FileCompressionService::class);
+            $savedPhoto = $compressionService->compressAndStore(
+                $request->file('photo'),
+                'employees/photos',
+                'public',
+                800
+            );
+            $validated['photo'] = $savedPhoto['file_path'];
         }
 
         $employee = Employee::create($validated);
@@ -219,7 +226,14 @@ class EmployeeController extends Controller
 
         if ($request->hasFile('photo')) {
             if ($employee->photo) Storage::disk('public')->delete($employee->photo);
-            $validated['photo'] = $request->file('photo')->store('employees/photos', 'public');
+            $compressionService = app(\App\Services\FileCompressionService::class);
+            $savedPhoto = $compressionService->compressAndStore(
+                $request->file('photo'),
+                'employees/photos',
+                'public',
+                800
+            );
+            $validated['photo'] = $savedPhoto['file_path'];
         }
 
         $employee->update($validated);

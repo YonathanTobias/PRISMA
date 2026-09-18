@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use App\Models\Employee;
+use App\Models\EmployeeDocument;
 use App\Models\Department;
 use App\Models\Position;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -366,4 +367,164 @@ class SimpegSystemTest extends TestCase
         $showResponse->assertSee('0711223344');
         $showResponse->assertSee('Lektor (200 kum)');
     }
+
+    /** @test */
+    public function hrd_can_manage_custom_document_types_and_upload()
+    {
+        $this->actingAs($this->hrd);
+
+        // 1. Create custom document type
+        $response = $this->post(route('document-types.store'), [
+            'name'        => 'Surat Tanda Registrasi (STR) Ners',
+            'code'        => 'str_ners',
+            'description' => 'Surat registrasi tenaga kesehatan',
+        ]);
+        $response->assertRedirect();
+
+        $docType = \App\Models\DocumentType::where('code', 'str_ners')->first();
+        $this->assertNotNull($docType);
+        $this->assertEquals('Surat Tanda Registrasi (STR) Ners', $docType->name);
+
+        // 2. View master data page and see document type
+        $masterResponse = $this->get(route('master.index'));
+        $masterResponse->assertStatus(200);
+        $masterResponse->assertSee('Surat Tanda Registrasi (STR) Ners');
+
+        // 3. Upload document using this custom type
+        \Illuminate\Support\Facades\Storage::fake('local');
+        $file = \Illuminate\Http\UploadedFile::fake()->create('str_surat.pdf', 500, 'application/pdf');
+
+        $emp = Employee::create([
+            'nik'               => 'EMP-DOC-TEST',
+            'full_name'         => 'Test Suster Ners',
+            'employment_status' => 'tetap',
+            'status'            => 'active',
+        ]);
+
+        $uploadResponse = $this->post(route('documents.store', $emp), [
+            'type'        => 'str_ners',
+            'name'        => 'STR Resmi 2026',
+            'file'        => $file,
+            'issued_date' => '2026-01-01',
+        ]);
+        $uploadResponse->assertRedirect();
+
+        $doc = \App\Models\EmployeeDocument::where('employee_id', $emp->id)->where('type', 'str_ners')->first();
+        $this->assertNotNull($doc);
+        $this->assertEquals('Surat Tanda Registrasi (STR) Ners', $doc->type_label);
+
+        // 4. Try to delete document type that is in use (should fail with error)
+        $deleteResponse = $this->delete(route('document-types.destroy', $docType));
+        $deleteResponse->assertSessionHas('error');
+        $this->assertDatabaseHas('document_types', ['id' => $docType->id]);
+    }
+
+    /** @test */
+    public function file_compression_service_optimizes_images_and_documents_correctly()
+    {
+        $this->actingAs($this->hrd);
+        \Illuminate\Support\Facades\Storage::fake('local');
+        \Illuminate\Support\Facades\Storage::fake('public');
+
+        $emp = Employee::create([
+            'nik'               => 'EMP-COMPRESS-01',
+            'full_name'         => 'Test Compression User',
+            'employment_status' => 'tetap',
+            'status'            => 'active',
+        ]);
+
+        // 1. Test Large Image Upload for Employee Photo
+        $image = \Illuminate\Http\UploadedFile::fake()->image('profile_photo.jpg', 2400, 1800);
+        $responsePhoto = $this->post(route('employees.store'), [
+            'nik'               => 'EMP-PHOTO-TEST',
+            'full_name'         => 'Photo Compress User',
+            'employment_status' => 'tetap',
+            'photo'             => $image,
+        ]);
+        $responsePhoto->assertRedirect();
+        $savedEmployee = Employee::where('nik', 'EMP-PHOTO-TEST')->first();
+        $this->assertNotNull($savedEmployee->photo);
+        \Illuminate\Support\Facades\Storage::disk('public')->assertExists($savedEmployee->photo);
+
+        // 2. Test Document Upload with PDF
+        $pdfFile = \Illuminate\Http\UploadedFile::fake()->create('sk_pengangkatan.pdf', 300, 'application/pdf');
+        $responseDoc = $this->post(route('documents.store', $emp), [
+            'type' => 'sk',
+            'name' => 'SK Pengangkatan 2026',
+            'file' => $pdfFile,
+        ]);
+        $responseDoc->assertRedirect();
+
+        $doc = EmployeeDocument::where('employee_id', $emp->id)->where('type', 'sk')->first();
+        $this->assertNotNull($doc);
+        \Illuminate\Support\Facades\Storage::disk('local')->assertExists($doc->file_path);
+        $this->assertNotEmpty($doc->file_size);
+
+        // 3. Test FileCompressionService directly
+        $service = app(\App\Services\FileCompressionService::class);
+        $this->assertTrue($service->isImage('image/jpeg', 'jpg'));
+        $this->assertTrue($service->isPdf('application/pdf', 'pdf'));
+        $this->assertFalse($service->isPdf('image/jpeg', 'jpg'));
+        $this->assertEquals('1.50 MB', $service->formatFileSize(1572864));
+        $this->assertEquals('500.00 KB', $service->formatFileSize(512000));
+    }
+
+    /** @test */
+    public function hrd_can_batch_upload_multiple_documents_with_auto_detection()
+    {
+        $this->actingAs($this->hrd);
+        \Illuminate\Support\Facades\Storage::fake('local');
+
+        $emp = Employee::create([
+            'nik'               => 'EMP-BATCH-01',
+            'full_name'         => 'Batch User Test',
+            'employment_status' => 'tetap',
+            'status'            => 'active',
+        ]);
+
+        $file1 = \Illuminate\Http\UploadedFile::fake()->create('KTP_Emy.pdf', 150, 'application/pdf');
+        $file2 = \Illuminate\Http\UploadedFile::fake()->create('Ijazah_S2_Emy.pdf', 300, 'application/pdf');
+        $file3 = \Illuminate\Http\UploadedFile::fake()->create('SK_Dosen_Tetap.pdf', 200, 'application/pdf');
+
+        $response = $this->post(route('documents.store-batch', $emp), [
+            'documents' => [
+                [
+                    'file' => $file1,
+                    'name' => 'KTP Emy',
+                    'type' => 'ktp',
+                ],
+                [
+                    'file' => $file2,
+                    'name' => 'Ijazah S2 Emy',
+                    'type' => 'ijazah',
+                ],
+                [
+                    'file' => $file3,
+                    'name' => 'SK Dosen Tetap',
+                    'type' => 'sk',
+                ],
+            ]
+        ]);
+
+        $response->assertRedirect();
+        $this->assertEquals(3, $emp->documents()->count());
+        $this->assertDatabaseHas('employee_documents', [
+            'employee_id' => $emp->id,
+            'name'        => 'KTP Emy',
+            'type'        => 'ktp',
+        ]);
+        $this->assertDatabaseHas('employee_documents', [
+            'employee_id' => $emp->id,
+            'name'        => 'Ijazah S2 Emy',
+            'type'        => 'ijazah',
+        ]);
+        $this->assertDatabaseHas('employee_documents', [
+            'employee_id' => $emp->id,
+            'name'        => 'SK Dosen Tetap',
+            'type'        => 'sk',
+        ]);
+    }
 }
+
+
+

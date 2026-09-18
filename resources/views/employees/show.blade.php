@@ -83,13 +83,19 @@
     </div>
 </div>
 
+@php
+    $enableTraining = \Illuminate\Support\Facades\DB::table('settings')->where('key', 'enable_training_module')->value('value') ?? '0';
+@endphp
+
 {{-- Tabs --}}
 <ul class="nav nav-pills mb-4" id="empTabs">
     <li class="nav-item"><a class="nav-link active" data-bs-toggle="pill" href="#tab-biodata">Biodata</a></li>
     <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tab-keluarga">Keluarga ({{ $employee->families->count() }})</a></li>
     <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tab-dokumen">Dokumen ({{ $employee->documents->count() }})</a></li>
     <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tab-pendidikan">Pendidikan ({{ $employee->educations->count() }})</a></li>
+    @if($enableTraining === '1')
     <li class="nav-item"><a class="nav-link" data-bs-toggle="pill" href="#tab-pelatihan">Pelatihan ({{ $employee->trainings->count() }})</a></li>
+    @endif
 </ul>
 
 <div class="tab-content">
@@ -281,9 +287,14 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h6 class="mb-0 fw-bold"><i class="bi bi-folder-fill text-warning me-2"></i>Dokumen Digital</h6>
                 @if(!auth()->user()->isGuest())
-                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#addDocModal">
-                    <i class="bi bi-upload me-1"></i>Upload Dokumen
-                </button>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#batchDocModal">
+                        <i class="bi bi-lightning-charge-fill me-1 text-warning"></i>Upload Massal (Auto-Detect)
+                    </button>
+                    <button class="btn btn-sm btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#addDocModal">
+                        <i class="bi bi-upload me-1"></i>Upload Satuan
+                    </button>
+                </div>
                 @endif
             </div>
             <div class="card-body p-0">
@@ -300,8 +311,8 @@
                                 {{ $doc->name }}
                             </td>
                             <td>
-                                <span class="badge bg-secondary">
-                                    {{ \App\Models\EmployeeDocument::$typeLabels[$doc->type] ?? $doc->type }}
+                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
+                                    {{ $doc->type_label }}
                                 </span>
                             </td>
                             <td>{{ $doc->file_size ?? '—' }}</td>
@@ -384,6 +395,7 @@
         </div>
     </div>
 
+    @if($enableTraining === '1')
     {{-- ─ Pelatihan Tab ─ --}}
     <div class="tab-pane fade" id="tab-pelatihan">
         <div class="card">
@@ -441,6 +453,7 @@
             </div>
         </div>
     </div>
+    @endif
 </div>
 
 {{-- ═══ Modals ═══ --}}
@@ -549,9 +562,18 @@
                     <div class="col-6">
                         <label class="form-label fw-semibold" style="font-size:13px">Tipe Dokumen</label>
                         <select name="type" class="form-select" required>
-                            @foreach(\App\Models\EmployeeDocument::$typeLabels as $v => $l)
-                            <option value="{{ $v }}">{{ $l }}</option>
-                            @endforeach
+                            @php
+                                $docTypes = \App\Models\DocumentType::active()->orderBy('name')->get();
+                            @endphp
+                            @if($docTypes->count() > 0)
+                                @foreach($docTypes as $dt)
+                                <option value="{{ $dt->code }}">{{ $dt->name }}</option>
+                                @endforeach
+                            @else
+                                @foreach(\App\Models\EmployeeDocument::$typeLabels as $v => $l)
+                                <option value="{{ $v }}">{{ $l }}</option>
+                                @endforeach
+                            @endif
                         </select>
                     </div>
                     <div class="col-6">
@@ -627,6 +649,7 @@
     </div>
 </div>
 
+@if($enableTraining === '1')
 {{-- Add Training Modal --}}
 <div class="modal fade" id="addTrainModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
@@ -680,4 +703,95 @@
         </div>
     </div>
 </div>
+@endif
+
+{{-- Batch Upload Document Modal with Smart Auto-Detection --}}
+<div class="modal fade" id="batchDocModal" tabindex="-1" aria-labelledby="batchDocModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary bg-opacity-10 border-bottom border-primary-subtle py-3">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;">
+                        <i class="bi bi-lightning-charge-fill"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold text-dark mb-0" id="batchDocModalLabel">Upload Dokumen Massal</h5>
+                        <div class="text-muted" style="font-size: 12px;">Sistem akan mendeteksi tipe dokumen secara otomatis berdasarkan nama file</div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form id="batchUploadForm" action="{{ route('documents.store-batch', $employee) }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body p-4">
+                    {{-- Dropzone Area --}}
+                    <div id="batchDropzone" class="border border-2 border-dashed rounded-3 p-4 text-center mb-4 transition" style="background-color: #f8fafc; cursor: pointer; border-color: #cbd5e1;">
+                        <i class="bi bi-cloud-arrow-up-fill text-primary display-5 mb-2 d-inline-block"></i>
+                        <h6 class="fw-bold text-dark mb-1">Tarik & Lepaskan File Dokumen ke Sini</h6>
+                        <p class="text-muted mb-3" style="font-size: 13px;">
+                            Bisa pilih <strong>banyak file sekaligus</strong> (KTP, Ijazah, SK, STR, NPWP, PEKERTI, dll). Format didukung: <code>PDF, JPG, PNG</code>.
+                        </p>
+                        <label class="btn btn-sm btn-primary px-3 py-2 shadow-sm" style="cursor: pointer;">
+                            <i class="bi bi-folder2-open me-1"></i>Pilih Berkas dari Komputer
+                            <input type="file" id="batchFilesInput" multiple accept=".pdf,.jpg,.jpeg,.png,.docx,.doc" class="d-none">
+                        </label>
+                    </div>
+
+                    {{-- Dynamic File List Table --}}
+                    <div id="batchTableContainer" class="d-none">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <h6 class="fw-bold text-dark mb-0">
+                                <i class="bi bi-list-check text-primary me-1"></i>Daftar Berkas Terdeteksi
+                            </h6>
+                            <span id="batchCountBadge" class="badge bg-primary">0 File</span>
+                        </div>
+
+                        <div class="table-responsive border rounded-3 bg-white" style="max-height: 340px; overflow-y: auto;">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light sticky-top">
+                                    <tr style="font-size: 12.5px;">
+                                        <th class="text-center" style="width: 30px;">#</th>
+                                        <th style="width: 28%;">Nama Berkas Asli</th>
+                                        <th style="width: 34%;">Judul Dokumen</th>
+                                        <th style="width: 30%;">Tipe Dokumen (Auto-Detect)</th>
+                                        <th class="text-center" style="width: 8%;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="batchTableBody">
+                                    {{-- Rendered via batch-upload.js --}}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="form-text mt-2" style="font-size: 11.5px;">
+                            <i class="bi bi-info-circle text-primary me-1"></i>Ikon <span class="badge bg-success-subtle text-success border-success-subtle"><i class="bi bi-magic"></i></span> menandakan tipe dokumen berhasil tertebak secara otomatis. Anda tetap dapat mengubah tipe pada dropdown jika perlu.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light px-4 py-3 border-top">
+                    <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" id="batchSubmitBtn" class="btn btn-primary px-4 shadow-sm fw-semibold" disabled>
+                        <i class="bi bi-cloud-upload me-1"></i>Simpan Semua Dokumen
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{{-- JSON of Active Document Types for JS Classifier --}}
+<script id="batchDocTypesData" type="application/json">
+@php
+    $activeTypes = \App\Models\DocumentType::active()->orderBy('name')->get(['code', 'name']);
+    if ($activeTypes->isEmpty()) {
+        $activeTypes = collect(\App\Models\EmployeeDocument::$typeLabels)->map(fn($name, $code) => ['code' => $code, 'name' => $name])->values();
+    }
+@endphp
+{!! json_encode($activeTypes) !!}
+</script>
 @endsection
+
+@push('scripts')
+<script src="{{ asset('js/batch-upload.js') }}"></script>
+@endpush

@@ -16,10 +16,14 @@ class SettingsController extends Controller
     public function update(Request $request)
     {
         $validated = $request->validate([
-            'app_name' => 'required|string|max:50',
-            'app_description' => 'required|string|max:255',
-            'institution_name' => 'required|string|max:100',
+            'app_name'               => 'required|string|max:50',
+            'app_description'        => 'required|string|max:255',
+            'institution_name'       => 'required|string|max:100',
+            'enable_training_module' => 'nullable|in:0,1',
         ]);
+
+        // If checkbox not present in request, set to 0
+        $validated['enable_training_module'] = $request->has('enable_training_module') ? '1' : '0';
 
         foreach ($validated as $key => $value) {
             DB::table('settings')->updateOrInsert(

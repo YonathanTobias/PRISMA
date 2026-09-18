@@ -11,6 +11,7 @@ use App\Http\Controllers\EmployeeTrainingController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\PositionController;
+use App\Http\Controllers\DocumentTypeController;
 use App\Http\Controllers\UserController;
 
 // Redirect root to dashboard
@@ -70,6 +71,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('employee-trainings/{training}', [EmployeeTrainingController::class, 'destroy'])->name('employee-trainings.destroy');
 
         Route::post('employees/{employee}/documents', [DocumentController::class, 'store'])->name('documents.store');
+        Route::post('employees/{employee}/documents/batch', [DocumentController::class, 'storeBatch'])->name('documents.store-batch');
         Route::delete('documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
 
         // Resigned Restore & Update Resignation
@@ -91,6 +93,13 @@ Route::middleware(['auth'])->group(function () {
                 'store'   => 'positions.store',
                 'update'  => 'positions.update',
                 'destroy' => 'positions.destroy',
+            ]);
+        Route::resource('master/document-types', DocumentTypeController::class)
+            ->only(['store', 'update', 'destroy'])
+            ->names([
+                'store'   => 'document-types.store',
+                'update'  => 'document-types.update',
+                'destroy' => 'document-types.destroy',
             ]);
     });
 
