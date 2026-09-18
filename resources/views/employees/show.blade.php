@@ -40,24 +40,22 @@
                     {{ $employee->position?->name ?? '—' }} — {{ $employee->department?->name ?? '—' }}
                 </div>
                 <div class="d-flex flex-wrap gap-2">
-                    @php
-                        $colors = ['tetap'=>'success','kontrak'=>'primary','magang'=>'secondary','probation'=>'warning'];
-                    @endphp
-                    <span class="badge badge-status bg-{{ $colors[$employee->employment_status] ?? 'secondary' }} fs-6">
+                    <span class="badge-status badge-{{ $employee->employment_status }} fs-6">
                         {{ \App\Models\Employee::$employmentStatusLabels[$employee->employment_status] ?? $employee->employment_status }}
+                    </span>
                     @if($employee->isDosen())
-                    <span class="badge badge-status bg-primary fs-6"><i class="bi bi-mortarboard-fill me-1"></i>Dosen</span>
+                    <span class="badge-status badge-dosen fs-6"><i class="bi bi-mortarboard-fill"></i> Dosen</span>
                     @if($employee->nidn)
-                    <span class="badge badge-status bg-info text-dark border"><i class="bi bi-person-vcard me-1"></i>NIDN: {{ $employee->nidn }}</span>
+                    <span class="badge-status badge-nidn fs-6"><i class="bi bi-person-vcard"></i> NIDN: {{ $employee->nidn }}</span>
                     @endif
                     @if($employee->functional_position)
-                    <span class="badge badge-status bg-light text-dark border"><i class="bi bi-award me-1"></i>{{ $employee->functional_position }}</span>
+                    <span class="badge-status badge-jafung fs-6"><i class="bi bi-award"></i> {{ $employee->functional_position }}</span>
                     @endif
                     @elseif($employee->isTendik())
-                    <span class="badge badge-status bg-secondary fs-6"><i class="bi bi-briefcase-fill me-1"></i>Tenaga Kependidikan</span>
+                    <span class="badge-status badge-tendik fs-6"><i class="bi bi-briefcase-fill"></i> Tenaga Kependidikan</span>
                     @endif
-                    <span class="badge badge-status bg-success bg-opacity-10 text-success border border-success">
-                        <i class="bi bi-circle-fill me-1" style="font-size:7px"></i>Aktif
+                    <span class="badge-status badge-tetap">
+                        <i class="bi bi-circle-fill" style="font-size:7px"></i> Aktif
                     </span>
                 </div>
             </div>

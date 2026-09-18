@@ -232,29 +232,5 @@
 @endsection
 
 @push('scripts')
-<script>
-function toggleDosenFields() {
-    const select = document.getElementById('employeeTypeSelect');
-    const section = document.getElementById('dosenAcademicSection');
-    if (select && section) {
-        section.style.display = (select.value === 'dosen') ? 'block' : 'none';
-    }
-}
-document.getElementById('employeeTypeSelect')?.addEventListener('change', toggleDosenFields);
-toggleDosenFields();
-
-document.getElementById('photoInput').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            document.getElementById('photoPreview').style.display = 'none';
-            const img = document.getElementById('photoPreviewImg');
-            img.src = ev.target.result;
-            img.classList.remove('d-none');
-        };
-        reader.readAsDataURL(file);
-    }
-});
-</script>
+<script src="{{ asset('js/employee-form.js') }}"></script>
 @endpush

@@ -134,45 +134,41 @@
                                 @endif
                                 <div>
                                     <div class="d-flex align-items-center gap-1">
-                                        <div class="fw-medium" style="font-size:13px">{{ $emp->full_name }}</div>
+                                        <div class="fw-semibold" style="font-size:13.5px;color:#0f172a">{{ $emp->full_name }}</div>
                                         @if($emp->isDosen())
-                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size:10px;padding:2px 5px">Dosen</span>
+                                        <span class="badge-status badge-dosen" style="font-size:10px;padding:2px 6px"><i class="bi bi-mortarboard-fill"></i> Dosen</span>
                                         @elseif($emp->isTendik())
-                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle" style="font-size:10px;padding:2px 5px">Tendik</span>
+                                        <span class="badge-status badge-tendik" style="font-size:10px;padding:2px 6px"><i class="bi bi-briefcase-fill"></i> Tendik</span>
                                         @endif
                                     </div>
-                                    <div class="text-muted" style="font-size:11px">
+                                    <div class="text-muted" style="font-size:11.5px">
                                         {{ $emp->gender === 'L' ? 'Laki-laki' : ($emp->gender === 'P' ? 'Perempuan' : '') }}
-                                        {{ $emp->birth_date ? '• ' . $emp->age . ' tahun' : '' }}
+                                        {{ $emp->birth_date ? '• ' . $emp->age . ' th' : '' }}
                                         @if($emp->nidn)
-                                        • <span class="fw-semibold text-primary">NIDN: {{ $emp->nidn }}</span>
+                                        • <span class="badge-status badge-nidn" style="font-size:10px;padding:1px 5px">NIDN: {{ $emp->nidn }}</span>
                                         @endif
                                     </div>
                                 </div>
                             </div>
                         </td>
-                        <td><code style="font-size:12px">{{ $emp->nik }}</code></td>
+                        <td><code style="font-size:12px;color:#334155;background:#f1f5f9;padding:2px 6px;border-radius:4px">{{ $emp->nik }}</code></td>
                         <td>
-                            <div style="font-size:13px" class="fw-medium">{{ $emp->department?->name ?? '—' }}</div>
-                            <div class="text-muted" style="font-size:11px">
+                            <div style="font-size:13px" class="fw-semibold text-dark">{{ $emp->department?->name ?? '—' }}</div>
+                            <div class="text-muted" style="font-size:11.5px">
                                 {{ $emp->functional_position ?: ($emp->position?->name ?? '—') }}
                                 @if($emp->rank_group)
-                                <br><span class="badge bg-light text-dark border" style="font-size:10px">{{ $emp->rank_group }}</span>
+                                <span class="badge-status badge-jafung ms-1" style="font-size:9.5px;padding:1px 5px">{{ $emp->rank_group }}</span>
                                 @endif
                             </div>
                         </td>
                         <td>
-                            @php
-                                $colors = ['tetap'=>'success','kontrak'=>'primary','magang'=>'secondary','probation'=>'warning'];
-                                $labels = \App\Models\Employee::$employmentStatusLabels;
-                            @endphp
-                            <span class="badge badge-status bg-{{ $colors[$emp->employment_status] ?? 'secondary' }}">
-                                {{ $labels[$emp->employment_status] ?? $emp->employment_status }}
+                            <span class="badge-status badge-{{ $emp->employment_status }}">
+                                {{ \App\Models\Employee::$employmentStatusLabels[$emp->employment_status] ?? $emp->employment_status }}
                             </span>
                             @if($emp->contract_end_date && $emp->contract_end_date->isPast())
-                                <br><span class="badge badge-status bg-danger mt-1">Kontrak Expired</span>
+                                <br><span class="badge-status bg-danger text-white mt-1" style="font-size:10px">Kontrak Expired</span>
                             @elseif($emp->contract_end_date && $emp->contract_end_date->diffInDays(now()) >= 0 && $emp->contract_end_date->isFuture() && $emp->contract_end_date->diffInDays() <= 30)
-                                <br><span class="badge badge-status bg-warning text-dark mt-1">Kontrak ~{{ $emp->contract_end_date->diffInDays() }}h</span>
+                                <br><span class="badge-status badge-probation mt-1" style="font-size:10px">Kontrak ~{{ $emp->contract_end_date->diffInDays() }}h</span>
                             @endif
                         </td>
                         <td style="font-size:12px">{{ $emp->join_date?->format('d M Y') ?? '—' }}</td>

@@ -7,50 +7,11 @@
     <link rel="icon" type="image/png" href="{{ asset('images/logo-stikes.png') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * { font-family: 'Inter', sans-serif; }
-        body {
-            background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
-            min-height: 100vh; display: flex; align-items: center; justify-content: center;
-        }
-        .login-card {
-            width: 100%; max-width: 420px;
-            background: #fff; border-radius: 20px;
-            box-shadow: 0 25px 60px rgba(0,0,0,.35);
-            overflow: hidden;
-        }
-        .login-header {
-            background: linear-gradient(135deg, #1e3a5f, #2563eb);
-            padding: 36px 32px 28px; text-align: center; color: #fff;
-        }
-        .login-header .brand-icon {
-            width: 64px; height: 64px; border-radius: 18px;
-            background: rgba(255,255,255,.15);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 28px; margin: 0 auto 14px;
-        }
-        .login-header h1 { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
-        .login-header p { font-size: 13px; opacity: .8; margin: 0; }
-        .login-body { padding: 32px; }
-        .form-label { font-size: 13px; font-weight: 600; color: #374151; }
-        .form-control {
-            border-radius: 10px; border-color: #d1d5db;
-            padding: 10px 14px; font-size: 14px;
-        }
-        .form-control:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
-        .btn-login {
-            background: linear-gradient(135deg, #1d4ed8, #2563eb);
-            color: #fff; border: none; border-radius: 10px;
-            padding: 11px; font-weight: 600; font-size: 14px;
-            transition: opacity .15s;
-        }
-        .btn-login:hover { opacity: .9; color: #fff; }
-        .login-footer { text-align: center; padding: 16px 32px; background: #f9fafb; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb; }
-        .input-icon { position: relative; }
-        .input-icon .bi { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 15px; }
-        .input-icon .form-control { padding-left: 38px; }
-    </style>
+    <!-- Custom Auth CSS -->
+    <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
 </head>
 <body>
 <div class="login-card">

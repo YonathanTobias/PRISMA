@@ -6,36 +6,44 @@
 {{-- Stats Row --}}
 <div class="row g-3 mb-4">
     <div class="col-sm-6 col-xl-3">
-        <div class="stat-card" style="background:linear-gradient(135deg,#1d4ed8,#3b82f6)">
-            <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
-            <div>
+        <div class="stat-card-modern">
+            <div class="stat-icon-wrapper stat-icon-blue">
+                <i class="bi bi-people-fill"></i>
+            </div>
+            <div class="stat-meta">
                 <div class="stat-value">{{ number_format($stats['total_active']) }}</div>
                 <div class="stat-label">Total Pegawai Aktif</div>
             </div>
         </div>
     </div>
     <div class="col-sm-6 col-xl-3">
-        <div class="stat-card" style="background:linear-gradient(135deg,#059669,#10b981)">
-            <div class="stat-icon"><i class="bi bi-person-plus-fill"></i></div>
-            <div>
+        <div class="stat-card-modern">
+            <div class="stat-icon-wrapper stat-icon-emerald">
+                <i class="bi bi-person-plus-fill"></i>
+            </div>
+            <div class="stat-meta">
                 <div class="stat-value">{{ $stats['new_this_month'] }}</div>
                 <div class="stat-label">Pegawai Baru Bulan Ini</div>
             </div>
         </div>
     </div>
     <div class="col-sm-6 col-xl-3">
-        <div class="stat-card" style="background:linear-gradient(135deg,#dc2626,#ef4444)">
-            <div class="stat-icon"><i class="bi bi-person-dash-fill"></i></div>
-            <div>
+        <div class="stat-card-modern">
+            <div class="stat-icon-wrapper stat-icon-rose">
+                <i class="bi bi-person-dash-fill"></i>
+            </div>
+            <div class="stat-meta">
                 <div class="stat-value">{{ $stats['resign_this_month'] }}</div>
                 <div class="stat-label">Resign Bulan Ini</div>
             </div>
         </div>
     </div>
     <div class="col-sm-6 col-xl-3">
-        <div class="stat-card" style="background:linear-gradient(135deg,#7c3aed,#8b5cf6)">
-            <div class="stat-icon"><i class="bi bi-archive-fill"></i></div>
-            <div>
+        <div class="stat-card-modern">
+            <div class="stat-icon-wrapper stat-icon-purple">
+                <i class="bi bi-archive-fill"></i>
+            </div>
+            <div class="stat-meta">
                 <div class="stat-value">{{ number_format($stats['total_inactive']) }}</div>
                 <div class="stat-label">Total Arsip Resign</div>
             </div>
@@ -78,7 +86,9 @@
                 <h6 class="mb-0 fw-bold"><i class="bi bi-pie-chart-fill text-primary me-2"></i>Status Kepegawaian</h6>
             </div>
             <div class="card-body d-flex align-items-center justify-content-center">
-                <canvas id="statusChart" style="max-height:220px"></canvas>
+                <canvas id="statusChart" style="max-height:220px" 
+                    data-labels="{{ json_encode(collect(\App\Models\Employee::$employmentStatusLabels)->only($byStatus->keys())->values()) }}" 
+                    data-values="{{ json_encode($byStatus->values()) }}"></canvas>
             </div>
         </div>
     </div>
@@ -90,7 +100,9 @@
                 <h6 class="mb-0 fw-bold"><i class="bi bi-gender-ambiguous text-success me-2"></i>Jenis Kelamin</h6>
             </div>
             <div class="card-body d-flex align-items-center justify-content-center">
-                <canvas id="genderChart" style="max-height:220px"></canvas>
+                <canvas id="genderChart" style="max-height:220px" 
+                    data-male="{{ $byGender->get('L', 0) }}" 
+                    data-female="{{ $byGender->get('P', 0) }}"></canvas>
             </div>
         </div>
     </div>
@@ -185,41 +197,6 @@
 @endsection
 
 @push('scripts')
-<script>
-// Status Kepegawaian Chart
-const statusCtx = document.getElementById('statusChart').getContext('2d');
-new Chart(statusCtx, {
-    type: 'doughnut',
-    data: {
-        labels: {!! json_encode(collect(\App\Models\Employee::$employmentStatusLabels)->only($byStatus->keys())->values()) !!},
-        datasets: [{
-            data: {!! $byStatus->values() !!},
-            backgroundColor: ['#10b981','#3b82f6','#8b5cf6','#f59e0b'],
-            borderWidth: 0, hoverOffset: 6
-        }]
-    },
-    options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom', labels: { font: { size: 12 }, boxWidth: 14, padding: 12 } } }
-    }
-});
-
-// Gender Chart
-const genderCtx = document.getElementById('genderChart').getContext('2d');
-new Chart(genderCtx, {
-    type: 'doughnut',
-    data: {
-        labels: ['Laki-laki', 'Perempuan'],
-        datasets: [{
-            data: [{{ $byGender->get('L', 0) }}, {{ $byGender->get('P', 0) }}],
-            backgroundColor: ['#3b82f6','#ec4899'],
-            borderWidth: 0, hoverOffset: 6
-        }]
-    },
-    options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom', labels: { font: { size: 12 }, boxWidth: 14, padding: 12 } } }
-    }
-});
-</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+<script src="{{ asset('js/dashboard.js') }}"></script>
 @endpush
