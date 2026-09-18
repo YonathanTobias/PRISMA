@@ -30,7 +30,7 @@
                     <span class="badge bg-danger">NON-AKTIF / RESIGN</span>
                 </div>
                 <div class="text-muted" style="font-size:14px">
-                    NIK: <code>{{ $employee->nik }}</code> • Ex-{{ $employee->position?->name ?? '—' }} ({{ $employee->department?->name ?? '—' }})
+                    NIP: <code>{{ $employee->nik ?: '—' }}</code> • Ex-{{ $employee->position?->name ?? '—' }} ({{ $employee->department?->name ?? '—' }})
                 </div>
             </div>
         </div>

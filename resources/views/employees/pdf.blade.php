@@ -38,7 +38,7 @@
         <thead>
             <tr>
                 <th style="width: 5%">No</th>
-                <th style="width: 15%">NIP/NIK</th>
+                <th style="width: 15%">NIP</th>
                 <th style="width: 25%">Nama Lengkap</th>
                 <th style="width: 10%">JK</th>
                 <th style="width: 20%">Departemen / Jabatan</th>

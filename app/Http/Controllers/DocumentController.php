@@ -20,9 +20,9 @@ class DocumentController extends Controller
     public function store(Request $request, Employee $employee)
     {
         $validated = $request->validate([
-            'type'         => 'required|string|max:100',
             'name'         => 'required|string|max:255',
             'file'         => 'required|file|max:10240',
+            'type'         => 'nullable|string|max:100',
             'issued_date'  => 'nullable|date',
             'expiry_date'  => 'nullable|date',
             'notes'        => 'nullable|string',
@@ -37,7 +37,7 @@ class DocumentController extends Controller
 
         EmployeeDocument::create([
             'employee_id' => $employee->id,
-            'type'        => $validated['type'],
+            'type'        => $validated['type'] ?? 'dokumen',
             'name'        => $validated['name'],
             'file_path'   => $savedFile['file_path'],
             'file_name'   => $savedFile['file_name'],
@@ -62,7 +62,7 @@ class DocumentController extends Controller
             'documents'        => 'required|array|min:1',
             'documents.*.file' => 'required|file|max:10240',
             'documents.*.name' => 'required|string|max:255',
-            'documents.*.type' => 'required|string|max:100',
+            'documents.*.type' => 'nullable|string|max:100',
         ]);
 
         $uploadedCount = 0;
@@ -76,7 +76,7 @@ class DocumentController extends Controller
 
             EmployeeDocument::create([
                 'employee_id' => $employee->id,
-                'type'        => $item['type'],
+                'type'        => $item['type'] ?? 'dokumen',
                 'name'        => $item['name'],
                 'file_path'   => $savedFile['file_path'],
                 'file_name'   => $savedFile['file_name'],

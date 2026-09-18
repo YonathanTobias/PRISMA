@@ -45,11 +45,11 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold" style="font-size:13px">NIK / ID Pegawai</label>
+                            <label class="form-label fw-semibold" style="font-size:13px">NIP (Nomor Induk Pegawai)</label>
                             <input type="text" name="nik" class="form-control @error('nik') is-invalid @enderror"
                                 value="{{ old('nik', $employee->nik) }}">
                             @error('nik')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            <div class="form-text" style="font-size:11px">Kosongkan jika berstatus kontrak tanpa NIP</div>
+                            <div class="form-text" style="font-size:11px">Nomor Induk Pegawai internal (bukan NIK KTP). Kosongkan jika belum memiliki NIP.</div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold" style="font-size:13px">Nama Lengkap <span class="text-danger">*</span></label>

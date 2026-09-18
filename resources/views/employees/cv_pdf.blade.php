@@ -37,7 +37,7 @@
                 <td style="vertical-align: top; border: none;">
                     <h1>{{ $employee->full_name }}</h1>
                     <p>{{ $employee->position?->name ?? 'Pegawai' }} — {{ $employee->department?->name ?? 'STIKes Panti Waluya Malang' }}</p>
-                    <p>NIK/NIP: {{ $employee->nik ?? '—' }} • Status Kerja: {{ \App\Models\Employee::$employmentStatusLabels[$employee->employment_status] ?? $employee->employment_status }}</p>
+                    <p>NIP: {{ $employee->nik ?? '—' }} • Status Kerja: {{ \App\Models\Employee::$employmentStatusLabels[$employee->employment_status] ?? $employee->employment_status }}</p>
                 </td>
                 <td style="text-align: right; vertical-align: bottom; border: none;">
                     <p style="font-weight: bold; color: #2563eb; margin: 0 0 2px 0;">CURRICULUM VITAE</p>
@@ -54,7 +54,7 @@
             <td class="value">: <strong>{{ $employee->full_name }}</strong></td>
         </tr>
         <tr>
-            <td class="label">NIP / NIK</td>
+            <td class="label">NIP</td>
             <td class="value">: {{ $employee->nik ?? '—' }}</td>
         </tr>
         <tr>

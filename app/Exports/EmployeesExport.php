@@ -70,7 +70,7 @@ class EmployeesExport implements FromCollection, WithHeadings, WithTitle, WithSt
     {
         return [
             'No',
-            'NIP/NIK',
+            'NIP',
             'Nama Lengkap',
             'Kategori',
             'NIDN',

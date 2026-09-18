@@ -208,7 +208,7 @@
     </div>
     <div class="card-body p-0">
         <table class="table table-hover mb-0">
-            <thead class="table-light"><tr><th>#</th><th>NIK</th><th>Nama</th><th>Departemen</th><th>Tgl Keluar</th><th>Alasan</th></tr></thead>
+            <thead class="table-light"><tr><th>#</th><th>NIP</th><th>Nama</th><th>Departemen</th><th>Tgl Keluar</th><th>Alasan</th></tr></thead>
             <tbody>
                 @forelse($data['employees'] as $index => $emp)
                 <tr style="font-size:13px">

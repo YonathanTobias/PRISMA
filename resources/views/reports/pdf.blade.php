@@ -75,7 +75,7 @@
     @elseif($type === 'turnover')
         <h3>Daftar Pegawai Keluar</h3>
         <table>
-            <thead><tr><th>#</th><th>NIK</th><th>Nama Pegawai</th><th>Departemen</th><th>Tanggal Keluar</th><th>Alasan</th></tr></thead>
+            <thead><tr><th>#</th><th>NIP</th><th>Nama Pegawai</th><th>Departemen</th><th>Tanggal Keluar</th><th>Alasan</th></tr></thead>
             <tbody>
                 @foreach($data['employees'] as $index => $emp)
                 <tr>

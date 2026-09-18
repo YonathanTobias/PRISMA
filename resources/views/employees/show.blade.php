@@ -62,8 +62,8 @@
             <div class="col-auto">
                 <div class="row g-3 text-center">
                     <div class="col-6">
-                        <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase">NIK</div>
-                        <code style="font-size:14px">{{ $employee->nik }}</code>
+                        <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase">NIP</div>
+                        <code style="font-size:14px">{{ $employee->nik ?: '—' }}</code>
                     </div>
                     <div class="col-6">
                         <div style="font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase">Masa Kerja</div>
@@ -109,7 +109,7 @@
                         @php
                         $rows = [
                             ['label'=>'Nama Lengkap','value'=>$employee->full_name],
-                            ['label'=>'NIK / NIP','value'=>$employee->nik ?? '—'],
+                            ['label'=>'NIP (Nomor Induk Pegawai)','value'=>$employee->nik ?? '—'],
                             ['label'=>'Jenis Kelamin','value'=>\App\Models\Employee::$genderLabels[$employee->gender] ?? '—'],
                             ['label'=>'Agama','value'=>$employee->religion ?? '—'],
                             ['label'=>'Tempat Lahir','value'=>$employee->birth_place ?? '—'],
@@ -289,10 +289,10 @@
                 @if(!auth()->user()->isGuest())
                 <div class="d-flex gap-2">
                     <button class="btn btn-sm btn-outline-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#batchDocModal">
-                        <i class="bi bi-lightning-charge-fill me-1 text-warning"></i>Upload Massal (Auto-Detect)
+                        <i class="bi bi-lightning-charge-fill me-1 text-warning"></i>Upload Massal (Banyak File)
                     </button>
                     <button class="btn btn-sm btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#addDocModal">
-                        <i class="bi bi-upload me-1"></i>Upload Satuan
+                        <i class="bi bi-upload me-1"></i>Upload Dokumen
                     </button>
                 </div>
                 @endif
@@ -300,35 +300,18 @@
             <div class="card-body p-0">
                 <table class="table table-hover mb-0">
                     <thead class="table-light"><tr>
-                        <th>Nama Dokumen</th><th>Tipe</th><th>Ukuran</th><th>Tgl Terbit</th><th>Kedaluwarsa</th><th>Aksi</th>
+                        <th>Nama Dokumen</th><th>Ukuran</th><th>Tgl Terbit / Dokumen</th><th>Catatan</th><th>Aksi</th>
                     </tr></thead>
                     <tbody>
                         @forelse($employee->documents as $doc)
-                        @php $expired = $doc->isExpired(); $expiring = $doc->isExpiringSoon(); @endphp
-                        <tr style="font-size:13px" class="{{ $expired ? 'table-danger' : ($expiring ? 'table-warning' : '') }}">
+                        <tr style="font-size:13px">
                             <td>
                                 <i class="bi bi-file-earmark-fill text-primary me-1"></i>
-                                {{ $doc->name }}
-                            </td>
-                            <td>
-                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
-                                    {{ $doc->type_label }}
-                                </span>
+                                <span class="fw-semibold text-dark">{{ $doc->name }}</span>
                             </td>
                             <td>{{ $doc->file_size ?? '—' }}</td>
                             <td>{{ $doc->issued_date?->format('d M Y') ?? '—' }}</td>
-                            <td>
-                                @if($doc->expiry_date)
-                                    @if($expired)
-                                        <span class="text-danger fw-semibold">{{ $doc->expiry_date->format('d M Y') }} <i class="bi bi-exclamation-triangle-fill"></i></span>
-                                    @elseif($expiring)
-                                        <span class="text-warning fw-semibold">{{ $doc->expiry_date->format('d M Y') }} <i class="bi bi-clock-fill"></i></span>
-                                    @else
-                                        {{ $doc->expiry_date->format('d M Y') }}
-                                    @endif
-                                @else —
-                                @endif
-                            </td>
+                            <td class="text-muted">{{ $doc->notes ?? '—' }}</td>
                             <td>
                                 <div class="d-flex gap-1">
                                     <a href="{{ route('documents.preview', $doc) }}" target="_blank" class="btn btn-sm btn-outline-primary" title="Lihat/Preview Dokumen">
@@ -347,12 +330,13 @@
                             </td>
                         </tr>
                         @empty
-                        <tr><td colspan="6" class="text-center text-muted py-4">Belum ada dokumen</td></tr>
+                        <tr><td colspan="5" class="text-center text-muted py-4">Belum ada dokumen</td></tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
         </div>
+    </div>
     </div>
 
     {{-- ─ Pendidikan Tab ─ --}}
@@ -555,52 +539,34 @@
 <div class="modal fade" id="addDocModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title">Upload Dokumen</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-file-earmark-arrow-up text-primary me-2"></i>Upload Dokumen</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
             <form method="POST" action="{{ route('documents.store', $employee) }}" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-body row g-3">
-                    <div class="col-6">
-                        <label class="form-label fw-semibold" style="font-size:13px">Tipe Dokumen</label>
-                        <select name="type" class="form-select" required>
-                            @php
-                                $docTypes = \App\Models\DocumentType::active()->orderBy('name')->get();
-                            @endphp
-                            @if($docTypes->count() > 0)
-                                @foreach($docTypes as $dt)
-                                <option value="{{ $dt->code }}">{{ $dt->name }}</option>
-                                @endforeach
-                            @else
-                                @foreach(\App\Models\EmployeeDocument::$typeLabels as $v => $l)
-                                <option value="{{ $v }}">{{ $l }}</option>
-                                @endforeach
-                            @endif
-                        </select>
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label fw-semibold" style="font-size:13px">Nama Dokumen</label>
-                        <input type="text" name="name" class="form-control" required>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold" style="font-size:13px">Nama / Judul Dokumen</label>
+                        <input type="text" name="name" class="form-control" placeholder="Contoh: KTP, Ijazah S1, SK Dosen Tetap, dll." required>
                     </div>
                     <div class="col-12">
-                        <label class="form-label fw-semibold" style="font-size:13px">File Dokumen (PDF, Gambar, Word)</label>
+                        <label class="form-label fw-semibold" style="font-size:13px">File Dokumen (PDF / Gambar)</label>
                         <input type="file" name="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.docx,.doc" required>
                         <div class="form-text" style="font-size:11px">Format yang didukung: PDF, JPG, PNG, DOCX (Maksimal 10MB)</div>
                     </div>
-                    <div class="col-6">
-                        <label class="form-label fw-semibold" style="font-size:13px">Tanggal Terbit</label>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold" style="font-size:13px">Tanggal Terbit / Dokumen (Opsional)</label>
                         <input type="date" name="issued_date" class="form-control">
                     </div>
-                    <div class="col-6">
-                        <label class="form-label fw-semibold" style="font-size:13px">Tanggal Kedaluwarsa</label>
-                        <input type="date" name="expiry_date" class="form-control">
-                    </div>
                     <div class="col-12">
-                        <label class="form-label fw-semibold" style="font-size:13px">Catatan</label>
-                        <textarea name="notes" class="form-control" rows="2"></textarea>
+                        <label class="form-label fw-semibold" style="font-size:13px">Catatan Tambahan (Opsional)</label>
+                        <textarea name="notes" class="form-control" rows="2" placeholder="Keterangan singkat jika ada..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-upload me-1"></i>Upload</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-upload me-1"></i>Upload Dokumen</button>
                 </div>
             </form>
         </div>
@@ -705,9 +671,9 @@
 </div>
 @endif
 
-{{-- Batch Upload Document Modal with Smart Auto-Detection --}}
+{{-- Batch Upload Document Modal --}}
 <div class="modal fade" id="batchDocModal" tabindex="-1" aria-labelledby="batchDocModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header bg-primary bg-opacity-10 border-bottom border-primary-subtle py-3">
                 <div class="d-flex align-items-center gap-2">
@@ -715,8 +681,8 @@
                         <i class="bi bi-lightning-charge-fill"></i>
                     </div>
                     <div>
-                        <h5 class="modal-title fw-bold text-dark mb-0" id="batchDocModalLabel">Upload Dokumen Massal</h5>
-                        <div class="text-muted" style="font-size: 12px;">Sistem akan mendeteksi tipe dokumen secara otomatis berdasarkan nama file</div>
+                        <h5 class="modal-title fw-bold text-dark mb-0" id="batchDocModalLabel">Upload Dokumen Sekaligus</h5>
+                        <div class="text-muted" style="font-size: 12px;">Pilih banyak berkas sekaligus tanpa ribet unggah satu per satu</div>
                     </div>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -730,7 +696,7 @@
                         <i class="bi bi-cloud-arrow-up-fill text-primary display-5 mb-2 d-inline-block"></i>
                         <h6 class="fw-bold text-dark mb-1">Tarik & Lepaskan File Dokumen ke Sini</h6>
                         <p class="text-muted mb-3" style="font-size: 13px;">
-                            Bisa pilih <strong>banyak file sekaligus</strong> (KTP, Ijazah, SK, STR, NPWP, PEKERTI, dll). Format didukung: <code>PDF, JPG, PNG</code>.
+                            Bisa pilih <strong>banyak file sekaligus</strong> (PDF, JPG, PNG).
                         </p>
                         <label class="btn btn-sm btn-primary px-3 py-2 shadow-sm" style="cursor: pointer;">
                             <i class="bi bi-folder2-open me-1"></i>Pilih Berkas dari Komputer
@@ -742,7 +708,7 @@
                     <div id="batchTableContainer" class="d-none">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <h6 class="fw-bold text-dark mb-0">
-                                <i class="bi bi-list-check text-primary me-1"></i>Daftar Berkas Terdeteksi
+                                <i class="bi bi-list-check text-primary me-1"></i>Daftar Berkas Siap Diunggah
                             </h6>
                             <span id="batchCountBadge" class="badge bg-primary">0 File</span>
                         </div>
@@ -751,20 +717,16 @@
                             <table class="table table-hover align-middle mb-0">
                                 <thead class="table-light sticky-top">
                                     <tr style="font-size: 12.5px;">
-                                        <th class="text-center" style="width: 30px;">#</th>
-                                        <th style="width: 28%;">Nama Berkas Asli</th>
-                                        <th style="width: 34%;">Judul Dokumen</th>
-                                        <th style="width: 30%;">Tipe Dokumen (Auto-Detect)</th>
-                                        <th class="text-center" style="width: 8%;"></th>
+                                        <th class="text-center" style="width: 40px;">#</th>
+                                        <th style="width: 40%;">Nama Berkas Asli</th>
+                                        <th style="width: 50%;">Nama / Judul Dokumen</th>
+                                        <th class="text-center" style="width: 10%;"></th>
                                     </tr>
                                 </thead>
                                 <tbody id="batchTableBody">
                                     {{-- Rendered via batch-upload.js --}}
                                 </tbody>
                             </table>
-                        </div>
-                        <div class="form-text mt-2" style="font-size: 11.5px;">
-                            <i class="bi bi-info-circle text-primary me-1"></i>Ikon <span class="badge bg-success-subtle text-success border-success-subtle"><i class="bi bi-magic"></i></span> menandakan tipe dokumen berhasil tertebak secara otomatis. Anda tetap dapat mengubah tipe pada dropdown jika perlu.
                         </div>
                     </div>
                 </div>
@@ -779,17 +741,6 @@
         </div>
     </div>
 </div>
-
-{{-- JSON of Active Document Types for JS Classifier --}}
-<script id="batchDocTypesData" type="application/json">
-@php
-    $activeTypes = \App\Models\DocumentType::active()->orderBy('name')->get(['code', 'name']);
-    if ($activeTypes->isEmpty()) {
-        $activeTypes = collect(\App\Models\EmployeeDocument::$typeLabels)->map(fn($name, $code) => ['code' => $code, 'name' => $name])->values();
-    }
-@endphp
-{!! json_encode($activeTypes) !!}
-</script>
 @endsection
 
 @push('scripts')

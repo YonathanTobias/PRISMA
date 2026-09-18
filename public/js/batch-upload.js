@@ -1,5 +1,5 @@
 /**
- * SIMPEG - Smart Batch Document Upload & Auto-Detection
+ * SIMPEG - Simple Batch Document Upload
  */
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -9,18 +9,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const batchTableBody = document.getElementById('batchTableBody');
     const batchSubmitBtn = document.getElementById('batchSubmitBtn');
     const batchCountBadge = document.getElementById('batchCountBadge');
-    const batchDocTypesData = document.getElementById('batchDocTypesData');
 
     if (!batchInput || !batchDropzone) return;
-
-    let availableTypes = [];
-    if (batchDocTypesData) {
-        try {
-            availableTypes = JSON.parse(batchDocTypesData.textContent);
-        } catch (e) {
-            console.error('Error parsing doc types', e);
-        }
-    }
 
     let selectedFiles = [];
 
@@ -56,16 +46,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
-            // Prevent duplicates by filename and size
             const isDuplicate = selectedFiles.some(f => f.file.name === file.name && f.file.size === file.size);
             if (!isDuplicate) {
-                const detected = detectDocumentType(file.name);
                 selectedFiles.push({
                     id: 'file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
                     file: file,
-                    name: cleanFileName(file.name),
-                    type: detected.code,
-                    confidence: detected.confidence
+                    name: cleanFileName(file.name)
                 });
             }
         }
@@ -74,49 +60,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function cleanFileName(filename) {
-        // Remove extension
         let name = filename.replace(/\.[^/.]+$/, "");
-        // Replace underscores and multiple dashes with spaces
         name = name.replace(/[_-]+/g, " ").trim();
         return name;
-    }
-
-    function detectDocumentType(filename) {
-        const lower = filename.toLowerCase();
-
-        // Rules array: { pattern: RegExp or substrings, code: string }
-        const rules = [
-            { patterns: ['ktp', 'e-ktp', 'identitas'], code: 'ktp' },
-            { patterns: ['kartu keluarga', ' kk ', 'kk_', '-kk', 'kk.'], code: 'kk' },
-            { patterns: ['npwp', 'pajak'], code: 'npwp' },
-            { patterns: ['bpjs', 'askes', 'ketenagakerjaan', 'kesehatan'], code: 'bpjs' },
-            { patterns: ['pekerti'], code: 'pekerti' },
-            { patterns: ['applied approach', ' aa ', 'aa_', '-aa', 'sertifikat_aa'], code: 'aa' },
-            { patterns: ['serdos', 'sertifikat pendidik', 'sertifikasi dosen'], code: 'serdos' },
-            { patterns: ['str', 'tanda registrasi', 'surat registrasi'], code: 'str' },
-            { patterns: ['sip', 'izin praktik', 'surat izin'], code: 'sip' },
-            { patterns: ['inpassing', 'inpasing'], code: 'inpassing' },
-            { patterns: ['transkrip', 'transcript', 'daftar nilai'], code: 'transkrip' },
-            { patterns: ['ijazah', 'diploma', 'sarjana', 'magister', 'doktor', 's1', 's2', 's3', 'd3', 'd4'], code: 'ijazah' },
-            { patterns: ['sk', 'surat keputusan', 'pengangkatan', 'tetap', 'kontrak_kerja', 'spk'], code: 'sk' },
-            { patterns: ['cv', 'curriculum vitae', 'resume', 'riwayat hidup'], code: 'cv' }
-        ];
-
-        for (const rule of rules) {
-            for (const pattern of rule.patterns) {
-                if (lower.includes(pattern)) {
-                    // Check if code exists in availableTypes
-                    const found = availableTypes.find(t => t.code === rule.code);
-                    if (found) {
-                        return { code: rule.code, confidence: 'high' };
-                    }
-                }
-            }
-        }
-
-        // Default to first available or 'lainnya'
-        const defaultType = availableTypes.find(t => t.code === 'lainnya') || availableTypes[0] || { code: 'lainnya' };
-        return { code: defaultType.code, confidence: 'low' };
     }
 
     function formatFileSize(bytes) {
@@ -137,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         batchTableContainer.classList.remove('d-none');
         batchSubmitBtn.disabled = false;
-        batchCountBadge.textContent = selectedFiles.length + ' File Siap';
+        batchCountBadge.textContent = selectedFiles.length + ' File Siap Diupload';
         batchTableBody.innerHTML = '';
 
         selectedFiles.forEach((item, index) => {
@@ -145,38 +91,23 @@ document.addEventListener('DOMContentLoaded', function () {
             tr.style.fontSize = '13px';
             tr.id = item.id;
 
-            // Generate Select options
-            let selectOptions = '';
-            availableTypes.forEach(t => {
-                const selected = t.code === item.type ? 'selected' : '';
-                selectOptions += `<option value="${t.code}" ${selected}>${t.name}</option>`;
-            });
-
             tr.innerHTML = `
-                <td class="align-middle text-center text-muted" style="width: 30px;">
+                <td class="align-middle text-center text-muted" style="width: 40px;">
                     ${index + 1}
                 </td>
-                <td class="align-middle" style="width: 28%;">
+                <td class="align-middle" style="width: 40%;">
                     <div class="d-flex align-items-center">
                         <i class="bi bi-file-earmark-pdf-fill text-danger fs-5 me-2"></i>
-                        <div class="text-truncate" style="max-width: 200px;" title="${item.file.name}">
+                        <div class="text-truncate" style="max-width: 280px;" title="${item.file.name}">
                             <div class="fw-semibold text-dark text-truncate">${item.file.name}</div>
                             <span class="badge bg-light text-secondary border" style="font-size: 10.5px;">${formatFileSize(item.file.size)}</span>
                         </div>
                     </div>
                 </td>
-                <td class="align-middle" style="width: 34%;">
+                <td class="align-middle" style="width: 50%;">
                     <input type="text" class="form-control form-control-sm doc-name-input" value="${item.name}" placeholder="Nama Dokumen" data-id="${item.id}" required>
                 </td>
-                <td class="align-middle" style="width: 30%;">
-                    <div class="input-group input-group-sm">
-                        <select class="form-select doc-type-select" data-id="${item.id}" required>
-                            ${selectOptions}
-                        </select>
-                        ${item.confidence === 'high' ? '<span class="input-group-text bg-success-subtle text-success border-success-subtle" title="Terdeteksi Otomatis"><i class="bi bi-magic"></i></span>' : ''}
-                    </div>
-                </td>
-                <td class="align-middle text-center" style="width: 8%;">
+                <td class="align-middle text-center" style="width: 10%;">
                     <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2 remove-row-btn" data-id="${item.id}" title="Hapus dari daftar">
                         <i class="bi bi-trash"></i>
                     </button>
@@ -186,23 +117,11 @@ document.addEventListener('DOMContentLoaded', function () {
             batchTableBody.appendChild(tr);
         });
 
-        // Add event listeners for dynamic row inputs
         document.querySelectorAll('.doc-name-input').forEach(input => {
             input.addEventListener('input', (e) => {
                 const id = e.target.getAttribute('data-id');
                 const found = selectedFiles.find(f => f.id === id);
                 if (found) found.name = e.target.value;
-            });
-        });
-
-        document.querySelectorAll('.doc-type-select').forEach(select => {
-            select.addEventListener('change', (e) => {
-                const id = e.target.getAttribute('data-id');
-                const found = selectedFiles.find(f => f.id === id);
-                if (found) {
-                    found.type = e.target.value;
-                    found.confidence = 'manual';
-                }
             });
         });
 
@@ -237,12 +156,12 @@ document.addEventListener('DOMContentLoaded', function () {
             selectedFiles.forEach((item, idx) => {
                 formData.append(`documents[${idx}][file]`, item.file);
                 formData.append(`documents[${idx}][name]`, item.name);
-                formData.append(`documents[${idx}][type]`, item.type);
+                formData.append(`documents[${idx}][type]`, 'dokumen');
             });
 
             // Loading state
             batchSubmitBtn.disabled = true;
-            batchSubmitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Mengunggah & Mengompres Dokumen...';
+            batchSubmitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Mengunggah Dokumen...';
 
             fetch(batchForm.action, {
                 method: 'POST',

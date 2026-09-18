@@ -13,8 +13,7 @@ class DepartmentController extends Controller
     {
         $departments   = Department::withCount('employees')->orderBy('name')->get();
         $positions     = Position::with('department')->orderBy('name')->get();
-        $documentTypes = DocumentType::withCount('documents')->orderBy('name')->get();
-        return view('master.index', compact('departments', 'positions', 'documentTypes'));
+        return view('master.index', compact('departments', 'positions'));
     }
 
     public function store(Request $request)

@@ -56,7 +56,7 @@
                 <label class="form-label mb-1" style="font-size:12px;font-weight:600">Cari Pegawai</label>
                 <div class="input-group">
                     <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
-                    <input type="text" name="search" class="form-control" placeholder="Nama, NIK, atau telepon..."
+                    <input type="text" name="search" class="form-control" placeholder="Nama, NIP, atau telepon..."
                            value="{{ request('search') }}">
                 </div>
             </div>
@@ -113,7 +113,7 @@
                     <tr>
                         <th style="width:40px">#</th>
                         <th>Pegawai</th>
-                        <th>NIK</th>
+                        <th>NIP</th>
                         <th>Departemen / Jabatan</th>
                         <th>Status Kerja</th>
                         <th>Bergabung</th>

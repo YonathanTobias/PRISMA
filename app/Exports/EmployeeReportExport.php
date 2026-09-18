@@ -36,9 +36,9 @@ class EmployeeReportExport implements FromCollection, WithHeadings, WithTitle, W
     public function headings(): array
     {
         return match($this->type) {
-            'demografi' => ['No', 'NIK', 'Nama Lengkap', 'Jenis Kelamin', 'Usia', 'Status Nikah', 'Departemen', 'Jabatan', 'Tanggal Bergabung'],
-            'status'    => ['No', 'NIK', 'Nama Lengkap', 'Status Kepegawaian', 'Departemen', 'Jabatan', 'Tanggal Bergabung', 'Akhir Kontrak'],
-            'turnover'  => ['No', 'NIK', 'Nama Lengkap', 'Departemen', 'Jabatan', 'Tanggal Keluar', 'Alasan', 'Status Clearance'],
+            'demografi' => ['No', 'NIP', 'Nama Lengkap', 'Jenis Kelamin', 'Usia', 'Status Nikah', 'Departemen', 'Jabatan', 'Tanggal Bergabung'],
+            'status'    => ['No', 'NIP', 'Nama Lengkap', 'Status Kepegawaian', 'Departemen', 'Jabatan', 'Tanggal Bergabung', 'Akhir Kontrak'],
+            'turnover'  => ['No', 'NIP', 'Nama Lengkap', 'Departemen', 'Jabatan', 'Tanggal Keluar', 'Alasan', 'Status Clearance'],
             default     => [],
         };
     }

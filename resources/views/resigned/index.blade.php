@@ -18,7 +18,7 @@
                 <label class="form-label mb-1" style="font-size:12px;font-weight:600">Pencarian Historis</label>
                 <div class="input-group">
                     <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
-                    <input type="text" name="search" class="form-control" placeholder="Nama atau NIK..."
+                    <input type="text" name="search" class="form-control" placeholder="Nama atau NIP..."
                            value="{{ request('search') }}">
                 </div>
             </div>
@@ -63,7 +63,7 @@
                     <tr>
                         <th style="width:40px">#</th>
                         <th>Mantan Pegawai</th>
-                        <th>NIK</th>
+                        <th>NIP</th>
                         <th>Departemen & Jabatan</th>
                         <th>Tgl Resmi Keluar</th>
                         <th>Alasan Pengakhiran</th>

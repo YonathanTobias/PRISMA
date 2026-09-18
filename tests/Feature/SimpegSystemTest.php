@@ -385,12 +385,7 @@ class SimpegSystemTest extends TestCase
         $this->assertNotNull($docType);
         $this->assertEquals('Surat Tanda Registrasi (STR) Ners', $docType->name);
 
-        // 2. View master data page and see document type
-        $masterResponse = $this->get(route('master.index'));
-        $masterResponse->assertStatus(200);
-        $masterResponse->assertSee('Surat Tanda Registrasi (STR) Ners');
-
-        // 3. Upload document using this custom type
+        // 2. Upload document using this custom type
         \Illuminate\Support\Facades\Storage::fake('local');
         $file = \Illuminate\Http\UploadedFile::fake()->create('str_surat.pdf', 500, 'application/pdf');
 

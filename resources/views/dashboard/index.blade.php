@@ -146,7 +146,7 @@
                 <thead class="table-light">
                     <tr>
                         <th>Pegawai</th>
-                        <th>NIK</th>
+                        <th>NIP</th>
                         <th>Departemen</th>
                         <th>Jabatan</th>
                         <th>Status</th>
